@@ -1,0 +1,60 @@
+{
+  "facilities": [
+    {
+      "facility_id": "ramona_rodeo",
+      "name": "Ramona Rodeo Grounds",
+      "lat": 33.05,
+      "lon": -116.87,
+      "capacity": {"horses": 80, "cattle": 300, "goats": 200, "sheep": 200},
+      "current_occupancy": {"horses": 12, "cattle": 45, "goats": 0, "sheep": 0},
+      "amenities": ["large_animal_pens", "water", "hay_storage", "vet_on_call"],
+      "access_roads": ["CA-78", "Ramona St"],
+      "contact": "760-555-0101"
+    },
+    {
+      "facility_id": "del_mar_fairgrounds",
+      "name": "Del Mar Fairgrounds",
+      "lat": 32.96,
+      "lon": -117.26,
+      "capacity": {"horses": 200, "cattle": 100, "goats": 50, "sheep": 50},
+      "current_occupancy": {"horses": 30, "cattle": 0, "goats": 0, "sheep": 0},
+      "amenities": ["stables", "water", "hay_storage", "vet_on_call", "large_parking"],
+      "access_roads": ["I-5", "Via de la Valle"],
+      "contact": "858-555-0202"
+    },
+    {
+      "facility_id": "bonsall_community",
+      "name": "Bonsall Community Grounds",
+      "lat": 33.28,
+      "lon": -117.30,
+      "capacity": {"horses": 40, "cattle": 80, "goats": 60, "sheep": 60},
+      "current_occupancy": {"horses": 5, "cattle": 10, "goats": 0, "sheep": 0},
+      "amenities": ["pens", "water"],
+      "access_roads": ["Mission Rd", "Old Highway 395"],
+      "contact": "760-555-0303"
+    },
+    {
+      "facility_id": "san_luis_rey",
+      "name": "San Luis Rey Training Center",
+      "lat": 33.24,
+      "lon": -117.17,
+      "capacity": {"horses": 500, "cattle": 0, "goats": 0, "sheep": 0},
+      "current_occupancy": {"horses": 450, "cattle": 0, "goats": 0, "sheep": 0},
+      "amenities": ["stables", "track", "vet_on_site"],
+      "access_roads": ["Highway 76"],
+      "contact": "760-555-0404"
+    },
+    {
+      "facility_id": "valley_center_staging",
+      "name": "Valley Center Staging Area",
+      "lat": 33.22,
+      "lon": -116.92,
+      "capacity": {"horses": 30, "cattle": 100, "goats": 80, "sheep": 80},
+      "current_occupancy": {"horses": 0, "cattle": 0, "goats": 0, "sheep": 0},
+      "amenities": ["temporary_pens", "water"],
+      "access_roads": ["Valley Center Rd"],
+      "contact": "760-555-0505"
+    }
+  ],
+  "last_updated": "2017-12-07T12:00:00Z"
+}
