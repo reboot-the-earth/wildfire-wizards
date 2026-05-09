@@ -6,6 +6,7 @@ import RouteOverlay from './RouteOverlay';
 import WindOverlay from './WindOverlay';
 import FarmMarkers from './FarmMarkers';
 import UserPin from './UserPin';
+import NeighborAwarenessMarkers from './NeighborAwarenessMarkers';
 
 function MapController({ center, zoom }) {
   const map = useMap();
@@ -33,10 +34,12 @@ export default function EvacMap({
   facilities,
   routes,
   farms,
+  fellowFarmers = null,
   showFire = true,
   showFacilities = true,
   showRoutes = false,
   showFarms = true,
+  showNeighborFarms = true,
   activeFarm,
   onFacilityClick,
   onMapClick,
@@ -80,6 +83,10 @@ export default function EvacMap({
 
       {showFarms && farms && (
         <FarmMarkers farms={farms} activeFarm={activeFarm} />
+      )}
+
+      {showNeighborFarms && fellowFarmers?.length > 0 && (
+        <NeighborAwarenessMarkers fellowFarmers={fellowFarmers} />
       )}
 
       {showFire && fireData?.wind && (

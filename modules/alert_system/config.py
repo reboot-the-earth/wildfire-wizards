@@ -20,6 +20,11 @@ POLL_INTERVAL_SECONDS = int(os.getenv("ALERT_POLL_SECONDS", "600"))
 DEDUPE_HOURS = int(os.getenv("ALERT_DEDUPE_HOURS", "4"))
 FIRE_CONFIDENCE_THRESHOLD = int(os.getenv("FIRE_CONFIDENCE_THRESHOLD", "75"))
 
+# Nearby operations named in SMS so recipients can warn neighbors not on the registry.
+COMMUNITY_FARMS_PATH = DATA_DIR / "community_farms.json"
+NEIGHBOR_RADIUS_KM = float(os.getenv("NEIGHBOR_RADIUS_KM", "25"))
+NEIGHBOR_MAX_BULLETS = int(os.getenv("NEIGHBOR_MAX_BULLETS", "5"))
+
 # Demo default for now; can come from config.json in future.
 BOUNDING_BOX = {
     "north": 33.51,

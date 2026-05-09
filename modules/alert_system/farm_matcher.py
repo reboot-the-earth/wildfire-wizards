@@ -1,11 +1,19 @@
 from __future__ import annotations
 
 import json
+import math
 import sqlite3
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from typing import Any
 
-from .config import DB_PATH, DEDUPE_HOURS
+from .config import (
+    COMMUNITY_FARMS_PATH,
+    DB_PATH,
+    DEDUPE_HOURS,
+    NEIGHBOR_MAX_BULLETS,
+    NEIGHBOR_RADIUS_KM,
+)
 
 
 def _point_in_polygon(lat: float, lon: float, polygon: dict | None) -> bool:
@@ -28,6 +36,101 @@ def _point_in_polygon(lat: float, lon: float, polygon: dict | None) -> bool:
             inside = not inside
         j = i
     return inside
+
+
+def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """Great-circle distance in kilometers (WGS84 sphere approximation)."""
+    r = 6371.0
+    p1, p2 = math.radians(lat1), math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlmb = math.radians(lon2 - lon1)
+    h = math.sin(dphi / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dlmb / 2) ** 2
+    return 2 * r * math.asin(min(1.0, math.sqrt(h)))
+
+
+def load_community_farms(path: Path | None = None) -> list[dict[str, Any]]:
+    """Farms we can name in alerts but who are not in ``farms.db`` (no SMS)."""
+    target = path or COMMUNITY_FARMS_PATH
+    if not target.exists():
+        return []
+    try:
+        data = json.loads(target.read_text())
+    except (json.JSONDecodeError, OSError):
+        return []
+    farms = data.get("farms") if isinstance(data, dict) else None
+    if not isinstance(farms, list):
+        return []
+    out: list[dict[str, Any]] = []
+    for row in farms:
+        if not isinstance(row, dict):
+            continue
+        fid = row.get("farm_id")
+        name = row.get("name")
+        lat, lon = row.get("lat"), row.get("lon")
+        if not fid or not name or lat is None or lon is None:
+            continue
+        out.append({"farm_id": str(fid), "name": str(name), "lat": float(lat), "lon": float(lon)})
+    return out
+
+
+def build_neighbor_awareness_text(
+    recipient: dict[str, Any],
+    registered_farms: list[dict[str, Any]],
+    at_risk_ids: set[str],
+    community_farms: list[dict[str, Any]],
+    radius_km: float | None = None,
+    max_bullets: int | None = None,
+) -> str:
+    """Short SMS block: unregistered neighbors to warn + other farms in-zone also alerted."""
+    rid = recipient.get("farm_id")
+    rlat, rlon = float(recipient["lat"]), float(recipient["lon"])
+    radius = NEIGHBOR_RADIUS_KM if radius_km is None else float(radius_km)
+    cap = NEIGHBOR_MAX_BULLETS if max_bullets is None else max(1, int(max_bullets))
+
+    registered_ids = {f["farm_id"] for f in registered_farms}
+
+    candidates: list[tuple[float, str, str]] = []
+    # (distance_km, display_name, category) category: community | at_risk | registered_other
+
+    for f in registered_farms:
+        if f["farm_id"] == rid:
+            continue
+        d = haversine_km(rlat, rlon, float(f["lat"]), float(f["lon"]))
+        if d > radius:
+            continue
+        if f["farm_id"] in at_risk_ids:
+            candidates.append((d, f["name"], "at_risk"))
+        else:
+            candidates.append((d, f["name"], "registered_other"))
+
+    for c in community_farms:
+        if c["farm_id"] == rid or c["farm_id"] in registered_ids:
+            continue
+        d = haversine_km(rlat, rlon, float(c["lat"]), float(c["lon"]))
+        if d > radius:
+            continue
+        candidates.append((d, c["name"], "community"))
+
+    candidates.sort(key=lambda x: x[0])
+
+    community_rows = [(d, n) for d, n, k in candidates if k == "community"][:cap]
+    at_risk_rows = [(d, n) for d, n, k in candidates if k == "at_risk"][:cap]
+    other_reg = [(d, n) for d, n, k in candidates if k == "registered_other"][: max(1, cap - len(community_rows) - len(at_risk_rows))]
+
+    lines: list[str] = []
+    if community_rows:
+        lines.append("NEARBY — not on our SMS list (please warn them if safe):")
+        for d, n in community_rows:
+            lines.append(f"• {n} (~{d:.0f} km)")
+    if at_risk_rows:
+        lines.append("Neighbors also getting this alert:")
+        for d, n in at_risk_rows:
+            lines.append(f"• {n} (~{d:.0f} km)")
+    if other_reg:
+        names = ", ".join(f"{n} (~{d:.0f} km)" for d, n in other_reg[:2])
+        lines.append(f"Other registered nearby: {names}")
+
+    return "\n".join(lines) if lines else ""
 
 
 def _hours_to_fire(farm: dict[str, Any], farms_at_risk: list[dict[str, Any]]) -> float | None:

@@ -94,7 +94,14 @@ def _send_message(to: str, body: str) -> tuple[str, str]:
     return "demo", "demo-outbox"
 
 
-def send_alert(farm: dict[str, Any], hours_remaining: float, wind: dict[str, Any], fire_origin: dict[str, Any], plan_url: str) -> None:
+def send_alert(
+    farm: dict[str, Any],
+    hours_remaining: float,
+    wind: dict[str, Any],
+    fire_origin: dict[str, Any],
+    plan_url: str,
+    neighbor_block: str | None = None,
+) -> None:
     body = (
         "NOHERDLEFT ALERT ⚠️\n"
         f"Fire detected near {farm['name']}.\n"
@@ -104,6 +111,8 @@ def send_alert(farm: dict[str, Any], hours_remaining: float, wind: dict[str, Any
         "Reply PLAN for text-only version.\n"
         "Reply STOP to unsubscribe."
     )
+    if neighbor_block and neighbor_block.strip():
+        body = f"{body}\n\n{neighbor_block.strip()}"
 
     provider, sid = _send_message(farm["phone"], body)
 
@@ -117,6 +126,7 @@ def send_alert(farm: dict[str, Any], hours_remaining: float, wind: dict[str, Any
             "plan_url": plan_url,
             "provider": provider,
             "message_id": sid,
+            "neighbor_block": bool(neighbor_block and neighbor_block.strip()),
         }
     )
 

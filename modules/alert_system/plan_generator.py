@@ -38,7 +38,12 @@ def _best_route(routes: dict[str, Any]) -> dict[str, Any] | None:
     return None
 
 
-def generate_text_plan(farm: dict[str, Any], fire_data: dict[str, Any], facilities_data: dict[str, Any]) -> list[str]:
+def generate_text_plan(
+    farm: dict[str, Any],
+    fire_data: dict[str, Any],
+    facilities_data: dict[str, Any],
+    neighbor_block: str | None = None,
+) -> list[str]:
     animals = farm["animals"]
     transport = farm["transport"]
     farm_coords = (farm["lat"], farm["lon"])
@@ -90,8 +95,10 @@ def generate_text_plan(farm: dict[str, Any], fire_data: dict[str, Any], faciliti
         "",
         f"TIME REMAINING: ~{eta:.1f} hours",
         "",
-        "PRIORITY ORDER:",
     ]
+    if neighbor_block and neighbor_block.strip():
+        lines.extend([neighbor_block.strip(), ""])
+    lines.append("PRIORITY ORDER:")
     for step in farmer_plan.get("priority_plan", [])[:8]:
         if not step.get("can_transport", True):
             continue

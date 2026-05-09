@@ -116,6 +116,36 @@ def test_mark_alert_sent_persists_dedupe_state(isolated_db):
     assert valley["last_alerted"] is not None
 
 
+def test_haversine_km_reasonable_order():
+    """San Diego-ish points: short drive should be single-digit to low tens of km."""
+    d = farm_matcher.haversine_km(33.22, -117.03, 33.37, -117.25)
+    assert 15 < d < 35
+
+
+def test_build_neighbor_awareness_lists_community_and_at_risk():
+    recipient = {"farm_id": "valley_center_ranch", "name": "Valley Center Ranch", "lat": 33.22, "lon": -117.03}
+    registered = [
+        recipient,
+        {"farm_id": "fallbrook_stables", "name": "Fallbrook Equestrian Center", "lat": 33.37, "lon": -117.25},
+    ]
+    community = [
+        {"farm_id": "camino_lindo_boarders", "name": "Camino Lindo Boarding Stables", "lat": 33.235, "lon": -117.015},
+    ]
+    at_risk_ids = {"valley_center_ranch", "fallbrook_stables"}
+    text = farm_matcher.build_neighbor_awareness_text(
+        recipient,
+        registered,
+        at_risk_ids,
+        community,
+        radius_km=30,
+        max_bullets=5,
+    )
+    assert "not on our SMS list" in text
+    assert "Camino Lindo" in text
+    assert "Neighbors also getting this alert" in text
+    assert "Fallbrook" in text
+
+
 def test_get_at_risk_filters_to_polygon_only(isolated_db):
     seed_farms.seed()
     farms = farm_matcher.load_registered_farms()

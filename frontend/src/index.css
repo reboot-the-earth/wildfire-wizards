@@ -188,6 +188,16 @@
     50%      { box-shadow: 0 0 0 14px rgba(56, 189, 248, 0); }
   }
 
+  @keyframes fellow-pulse {
+    0%, 100% { transform: scale(1); opacity: 0.4; }
+    50%      { transform: scale(1.5); opacity: 0; }
+  }
+
+  .leaflet-div-icon {
+    background: transparent !important;
+    border: none !important;
+  }
+
   .route-label {
     background: none !important;
     border: none !important;

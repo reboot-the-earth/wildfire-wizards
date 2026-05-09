@@ -1,0 +1,23 @@
+{
+  "description": "Operations near demo farms that are not in the SMS registry. Alert text names them so registered recipients can warn neighbors in person.",
+  "farms": [
+    {
+      "farm_id": "bonsall_hobby_ranch",
+      "name": "Bonsall Hobby Ranch",
+      "lat": 33.255,
+      "lon": -117.045
+    },
+    {
+      "farm_id": "camino_lindo_boarders",
+      "name": "Camino Lindo Boarding Stables",
+      "lat": 33.235,
+      "lon": -117.015
+    },
+    {
+      "farm_id": "gopher_canyon_aviary",
+      "name": "Gopher Canyon Aviary",
+      "lat": 33.228,
+      "lon": -117.058
+    }
+  ]
+}
