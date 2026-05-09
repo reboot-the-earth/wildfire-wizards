@@ -111,39 +111,67 @@ function normalizeFacilities(raw) {
 }
 
 /**
- * Normalize route output from Person 2. Routes already match our format closely.
- *
- * The routing engine uses a coarse demo road graph and snaps the farm coords
- * to the nearest known node — meaning the returned ``route_geometry`` may
- * start a few km away from where the user actually pinned. To make the map
- * tell the truth, we prepend ``[origin_lon, origin_lat]`` as the first vertex
- * of every route line. This way the rendered polyline visibly starts at the
- * user's pin and connects out to the road network.
+ * Fetch a real road-following route from OSRM (Open Source Routing Machine).
+ * Returns a GeoJSON LineString geometry or null on failure.
  */
-function normalizeRoutes(raw, origin = null) {
+async function fetchOSRMGeometry(startLon, startLat, endLon, endLat) {
+  try {
+    const url = `https://router.project-osrm.org/route/v1/driving/${startLon},${startLat};${endLon},${endLat}?overview=full&geometries=geojson`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (data.code !== 'Ok' || !data.routes?.length) return null;
+    return data.routes[0].geometry;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Normalize route output and replace straight-line geometries with real
+ * road-following paths from OSRM. Falls back to the original geometry
+ * if OSRM is unavailable.
+ */
+async function normalizeRoutes(raw, origin = null) {
   if (!raw || !raw.routes_to_facilities) return null;
-  if (!origin || origin.lat == null || origin.lon == null) return raw;
 
-  const originPair = [origin.lon, origin.lat];
-  const sameAsOrigin = (pt) =>
-    Array.isArray(pt) &&
-    pt.length >= 2 &&
-    Math.abs(pt[0] - originPair[0]) < 1e-6 &&
-    Math.abs(pt[1] - originPair[1]) < 1e-6;
+  const close = (a, b) =>
+    Array.isArray(a) && Array.isArray(b) &&
+    Math.abs(a[0] - b[0]) < 1e-4 && Math.abs(a[1] - b[1]) < 1e-4;
 
-  const patched = raw.routes_to_facilities.map((r) => {
-    const geom = r.route_geometry;
-    const coords = geom?.coordinates;
-    if (!Array.isArray(coords) || coords.length === 0) return r;
-    if (sameAsOrigin(coords[0])) return r;
-    return {
-      ...r,
-      route_geometry: {
-        ...geom,
-        coordinates: [originPair, ...coords],
-      },
-    };
-  });
+  const patched = await Promise.all(
+    raw.routes_to_facilities.map(async (r) => {
+      const coords = r.route_geometry?.coordinates;
+      if (!Array.isArray(coords) || coords.length < 2) return r;
+
+      const startPt = origin ? [origin.lon, origin.lat] : coords[0];
+      const endPt = coords[coords.length - 1];
+
+      const osrmGeom = await fetchOSRMGeometry(startPt[0], startPt[1], endPt[0], endPt[1]);
+      if (osrmGeom?.coordinates?.length) {
+        const osrmCoords = [...osrmGeom.coordinates];
+
+        // Ensure route starts exactly at the user pin
+        if (!close(osrmCoords[0], startPt)) osrmCoords.unshift(startPt);
+        // Ensure route ends exactly at the facility marker
+        if (!close(osrmCoords[osrmCoords.length - 1], endPt)) osrmCoords.push(endPt);
+
+        return { ...r, route_geometry: { ...osrmGeom, coordinates: osrmCoords } };
+      }
+
+      // Fallback: prepend origin if needed
+      if (origin && origin.lat != null) {
+        const originPair = [origin.lon, origin.lat];
+        if (!close(coords[0], originPair)) {
+          return {
+            ...r,
+            route_geometry: { ...r.route_geometry, coordinates: [originPair, ...coords] },
+          };
+        }
+      }
+      return r;
+    })
+  );
 
   return { ...raw, routes_to_facilities: patched };
 }
@@ -272,7 +300,7 @@ export async function fetchRoutes(farmLat, farmLon) {
     method: 'POST',
     body: JSON.stringify({ farm_lat: farmLat, farm_lon: farmLon }),
   });
-  if (ok && data) return normalizeRoutes(data, { lat: farmLat, lon: farmLon });
+  if (ok && data) return await normalizeRoutes(data, { lat: farmLat, lon: farmLon });
   return null;
 }
 

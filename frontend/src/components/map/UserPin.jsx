@@ -56,10 +56,11 @@ export default function UserPin({ location, pickMode, onPick, autoFly = true }) 
     return () => container.classList.remove('map-pick-mode');
   }, [map, pickMode]);
 
-  // Smooth-pan to the farm whenever it changes (handles address/ZIP/coords/pin).
+  // Smooth-pan to the farm whenever it changes. Use zoom 11 to keep
+  // destination facility markers visible in the viewport.
   useEffect(() => {
     if (!autoFly || !location) return;
-    const targetZoom = Math.max(map.getZoom(), 13);
+    const targetZoom = Math.min(Math.max(map.getZoom(), 11), 12);
     map.flyTo([location.lat, location.lon], targetZoom, {
       duration: 0.9,
       easeLinearity: 0.25,
@@ -77,16 +78,8 @@ export default function UserPin({ location, pickMode, onPick, autoFly = true }) 
     [onPick]
   );
 
-  if (!location) return null;
-
-  return (
-    <Marker
-      ref={markerRef}
-      position={[location.lat, location.lon]}
-      icon={userPinIcon}
-      draggable={true}
-      eventHandlers={eventHandlers}
-      zIndexOffset={1000}
-    />
-  );
+  // The visible farm marker is rendered by FarmMarkers (the "YOUR FARM" icon
+  // moves to userLocation). We only render a pick-mode-only indicator here,
+  // not a duplicate pin. The click handler and drag handler above still work.
+  return null;
 }

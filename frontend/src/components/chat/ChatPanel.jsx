@@ -127,6 +127,74 @@ function riskLabel(level, lang) {
   return (RISK_LABELS[lang] || RISK_LABELS.en)[level] || level?.toUpperCase() || '?';
 }
 
+const FARM_MSG_TRANSLATIONS = {
+  es: {
+    'NEED HELP: 150 cattle + 8 horses, only 1 trailer. Need extra trailers & drivers ASAP!':
+      'NECESITO AYUDA: 150 vacas + 8 caballos, solo 1 remolque. ¡Necesito remolques y conductores URGENTE!',
+    'URGENT: 24 horses need transport. Looking for any horse trailers nearby!':
+      'URGENTE: 24 caballos necesitan transporte. ¡Busco remolques de caballos cerca!',
+    'Fire projected to reach your area in ~3.5 hours. Evacuate livestock now.':
+      'Se proyecta que el fuego llegará a su área en ~3.5 horas. Evacúe el ganado ahora.',
+    'Fire projected to reach your area in ~2 hours. Begin immediate evacuation.':
+      'Se proyecta que el fuego llegará a su área en ~2 horas. Comience la evacuación inmediata.',
+    'Fire projected to reach your area in ~6 hours. Prepare for evacuation.':
+      'Se proyecta que el fuego llegará a su área en ~6 horas. Prepárese para evacuar.',
+  },
+  zh: {
+    'NEED HELP: 150 cattle + 8 horses, only 1 trailer. Need extra trailers & drivers ASAP!':
+      '需要帮助：150头牛 + 8匹马，只有1辆拖车。急需额外拖车和司机！',
+    'URGENT: 24 horses need transport. Looking for any horse trailers nearby!':
+      '紧急：24匹马需要运输。寻找附近的马拖车！',
+    'Fire projected to reach your area in ~3.5 hours. Evacuate livestock now.':
+      '预计火灾将在约3.5小时内到达您的区域。立即疏散牲畜。',
+    'Fire projected to reach your area in ~2 hours. Begin immediate evacuation.':
+      '预计火灾将在约2小时内到达您的区域。立即开始疏散。',
+    'Fire projected to reach your area in ~6 hours. Prepare for evacuation.':
+      '预计火灾将在约6小时内到达您的区域。准备疏散。',
+  },
+  vi: {
+    'NEED HELP: 150 cattle + 8 horses, only 1 trailer. Need extra trailers & drivers ASAP!':
+      'CẦN GIÚP: 150 bò + 8 ngựa, chỉ 1 xe kéo. Cần thêm xe kéo và tài xế GẤP!',
+    'URGENT: 24 horses need transport. Looking for any horse trailers nearby!':
+      'KHẨN CẤP: 24 ngựa cần vận chuyển. Tìm xe kéo ngựa gần đây!',
+    'Fire projected to reach your area in ~3.5 hours. Evacuate livestock now.':
+      'Dự kiến lửa sẽ đến khu vực của bạn trong ~3.5 giờ. Sơ tán gia súc ngay.',
+    'Fire projected to reach your area in ~2 hours. Begin immediate evacuation.':
+      'Dự kiến lửa sẽ đến khu vực của bạn trong ~2 giờ. Bắt đầu sơ tán ngay.',
+    'Fire projected to reach your area in ~6 hours. Prepare for evacuation.':
+      'Dự kiến lửa sẽ đến khu vực của bạn trong ~6 giờ. Chuẩn bị sơ tán.',
+  },
+  tl: {
+    'NEED HELP: 150 cattle + 8 horses, only 1 trailer. Need extra trailers & drivers ASAP!':
+      'KAILANGAN TULONG: 150 baka + 8 kabayo, 1 trailer lang. Kailangan ng dagdag na trailer at driver ASAP!',
+    'URGENT: 24 horses need transport. Looking for any horse trailers nearby!':
+      'URGENT: 24 kabayo kailangan ng sasakyan. Naghahanap ng horse trailer malapit!',
+    'Fire projected to reach your area in ~3.5 hours. Evacuate livestock now.':
+      'Inaasahang aabot ang apoy sa lugar mo sa ~3.5 oras. I-evacuate na ang mga hayop.',
+    'Fire projected to reach your area in ~2 hours. Begin immediate evacuation.':
+      'Inaasahang aabot ang apoy sa lugar mo sa ~2 oras. Magsimulang mag-evacuate agad.',
+    'Fire projected to reach your area in ~6 hours. Prepare for evacuation.':
+      'Inaasahang aabot ang apoy sa lugar mo sa ~6 oras. Maghanda para sa evacuation.',
+  },
+  ko: {
+    'NEED HELP: 150 cattle + 8 horses, only 1 trailer. Need extra trailers & drivers ASAP!':
+      '도움 필요: 소 150마리 + 말 8마리, 트레일러 1대뿐. 추가 트레일러와 운전자 급히 필요!',
+    'URGENT: 24 horses need transport. Looking for any horse trailers nearby!':
+      '긴급: 말 24마리 운송 필요. 근처 말 트레일러 찾고 있습니다!',
+    'Fire projected to reach your area in ~3.5 hours. Evacuate livestock now.':
+      '약 3.5시간 후 화재가 도달할 것으로 예상됩니다. 지금 가축을 대피하세요.',
+    'Fire projected to reach your area in ~2 hours. Begin immediate evacuation.':
+      '약 2시간 후 화재가 도달할 것으로 예상됩니다. 즉시 대피를 시작하세요.',
+    'Fire projected to reach your area in ~6 hours. Prepare for evacuation.':
+      '약 6시간 후 화재가 도달할 것으로 예상됩니다. 대피를 준비하세요.',
+  },
+};
+
+function t(text, lang) {
+  if (lang === 'en' || !text) return text;
+  return FARM_MSG_TRANSLATIONS[lang]?.[text] ?? text;
+}
+
 const RESPONSES = {
   en: {
     welcome: `Hi! I'm your **WildfireWizards** emergency assistant. Ask me anything about the fire, your farm, shelters, or neighbors. Type **"help"** to see what I can do.`,
@@ -149,10 +217,10 @@ const RESPONSES = {
     welcome: `¡Hola! Soy el asistente de emergencia de **WildfireWizards**. Pregúntame sobre el incendio, tu granja, refugios o vecinos. Escribe **"ayuda"** para ver opciones.`,
     greet: () => `Bienvenido al asistente de **WildfireWizards**. Puedo ayudar con:\n\n• **Incendio** — estado actual\n• **Mi granja** — nivel de riesgo\n• **Refugios** — capacidad disponible\n• **Vecinos** — quién puede ayudar\n• **Rutas** — caminos seguros\n• **Animales** — en riesgo`,
     fire: (ctx) => { const w = ctx.fireData.wind || {}; const wx = ctx.fireData.weather || {}; return `🔥 **Incendio Lilac — Bonsall**\n\n• **Focos activos:** ${ctx.fireData.active_hotspots?.length || 0}\n• **Viento:** ${w.speed_mph} mph, ráfagas ${w.gusts_mph} mph, dirección ${w.direction_deg}°\n• **Clima:** ${wx.temp_f}°F, ${wx.humidity_pct}% humedad (críticamente seco)\n• **Granjas en riesgo:** ${ctx.fireData.farms_at_risk?.length || 0}\n\nEl fuego avanza al suroeste. **Se recomienda evacuar.**`; },
-    farm: (ctx) => { const f = ctx.currentUserFarm; if (!f) return 'Granja no encontrada.'; return `🏠 **Tu Granja — ${f.name}**\n\n• **Riesgo:** ${riskLabel(f.risk_level, 'es')}\n• **Tiempo al fuego:** ${f.estimated_time_to_fire_hours}h\n• **Estado:** ${f.needsHelp ? '🆘 Ayuda solicitada' : 'Sin solicitud'}\n${f.helpMessage ? `• **Mensaje:** ${f.helpMessage}` : ''}\n\n⚠️ ${f.alert_message}\n\n**Acción:** Evacuar inmediatamente.`; },
+    farm: (ctx) => { const f = ctx.currentUserFarm; if (!f) return 'Granja no encontrada.'; return `🏠 **Tu Granja — ${f.name}**\n\n• **Riesgo:** ${riskLabel(f.risk_level, 'es')}\n• **Tiempo al fuego:** ${f.estimated_time_to_fire_hours}h\n• **Estado:** ${f.needsHelp ? '🆘 Ayuda solicitada' : 'Sin solicitud'}\n${f.helpMessage ? `• **Mensaje:** ${t(f.helpMessage, 'es')}` : ''}\n\n⚠️ ${t(f.alert_message, 'es')}\n\n**Acción:** Evacuar inmediatamente.`; },
     shelter: (ctx) => { const open = ctx.facilities.filter(f => f.capacity_available > 0); return `🏥 **Refugios** (${open.length} disponibles, ${open.reduce((s,f) => s + f.capacity_available, 0)} espacios)\n\n${ctx.facilities.map(f => `• **${f.name}** — ${f.capacity_available === 0 ? 'LLENO' : `${f.capacity_available}/${f.capacity_total}`}\n  Acepta: ${f.accepts.join(', ')} · ${f.contact}`).join('\n\n')}`; },
     neighbor: (ctx) => { const h = ctx.fellowFarmers.filter(f => f.willingToHelp); const n = ctx.fellowFarmers.filter(f => f.needsHelp); let r = `👥 **Vecinos que ayudan** (${h.length})\n\n${h.map(f => `• **${f.name}** (${f.owner}) — ${f.spare_capacity} espacios\n  _"${f.helpMessage}"_`).join('\n\n')}`; if (n.length) r += `\n\n---\n\n🆘 **Necesitan ayuda** (${n.length})\n\n${n.map(f => `• **${f.name}** — ${f.sosMessage || 'Necesita ayuda'}`).join('\n\n')}`; return r; },
-    sos: (ctx) => { const sf = (ctx.fireData.farms_at_risk || []).filter(f => f.needsHelp); const sn = ctx.fellowFarmers.filter(f => f.needsHelp); const lines = [...sf.map(f => `• **${f.name}** — ${riskLabel(f.risk_level, 'es')}, ${f.estimated_time_to_fire_hours}h\n  _"${f.helpMessage}"_`), ...sn.map(f => `• **${f.name}** — 🆘 ${f.sosMessage || 'Necesita ayuda'}`)]; return `🆘 **Personas que necesitan ayuda** (${sf.length + sn.length})\n\n${lines.join('\n\n')}`; },
+    sos: (ctx) => { const sf = (ctx.fireData.farms_at_risk || []).filter(f => f.needsHelp); const sn = ctx.fellowFarmers.filter(f => f.needsHelp); const lines = [...sf.map(f => `• **${f.name}** — ${riskLabel(f.risk_level, 'es')}, ${f.estimated_time_to_fire_hours}h\n  _"${t(f.helpMessage, 'es')}"_`), ...sn.map(f => `• **${f.name}** — 🆘 ${f.sosMessage || 'Necesita ayuda'}`)]; return `🆘 **Personas que necesitan ayuda** (${sf.length + sn.length})\n\n${lines.join('\n\n')}`; },
     route: () => `🛣️ **Ruta de Evacuación**\n\n• **I-15 Sur** → Del Mar Fairgrounds (mejor, 28 min)\n\n⚠️ Evitar caminos al noreste.\n\nPrioridad: preñadas/heridas primero.`,
     animal: (ctx) => `🐴 **Animales en riesgo**\n\n• **Granjas en peligro:** ${ctx.fireData.farms_at_risk?.length || 0}\n• Tu granja: 150 vacas + 8 caballos\n\n**Capacidad de refugios:**\n${ctx.facilities.filter(f => f.capacity_available > 0).map(f => `• ${f.name}: ${f.capacity_available} (${f.accepts.join(', ')})`).join('\n')}`,
     weather: (ctx) => { const w = ctx.fireData.wind || {}; const wx = ctx.fireData.weather || {}; return `🌡️ **Condiciones**\n\n• **Temp:** ${wx.temp_f}°F\n• **Humedad:** ${wx.humidity_pct}%\n• **Viento:** ${w.speed_mph} mph, ráfagas ${w.gusts_mph}\n• **Dirección:** ${w.direction_deg}°\n\nCondiciones Santa Ana — propagación rápida.`; },
@@ -166,10 +234,10 @@ const RESPONSES = {
     welcome: `你好！我是 **WildfireWizards** 紧急助手。问我关于火灾、农场、避难所或邻居的任何问题。输入 **"帮助"** 查看功能。`,
     greet: () => `欢迎使用 **WildfireWizards**。我可以帮助：\n\n• **火灾状态**\n• **我的农场** — 风险等级\n• **避难所** — 容量\n• **邻居** — 谁能帮忙\n• **路线** — 安全路径\n• **动物** — 风险统计`,
     fire: (ctx) => { const w = ctx.fireData.wind || {}; const wx = ctx.fireData.weather || {}; return `🔥 **丁香花火灾 — Bonsall**\n\n• **热点:** ${ctx.fireData.active_hotspots?.length || 0}\n• **风速:** ${w.speed_mph} mph, 阵风 ${w.gusts_mph} mph, 方向 ${w.direction_deg}°\n• **天气:** ${wx.temp_f}°F, ${wx.humidity_pct}% 湿度（极度干燥）\n• **危险农场:** ${ctx.fireData.farms_at_risk?.length || 0}\n\n火势向西南蔓延。**强烈建议撤离。**`; },
-    farm: (ctx) => { const f = ctx.currentUserFarm; if (!f) return '未找到农场。请先注册您的位置。'; return `🏠 **你的农场 — ${f.name}**\n\n• **风险:** ${riskLabel(f.risk_level, 'zh')}\n• **距火时间:** ${f.estimated_time_to_fire_hours}小时\n• **状态:** ${f.needsHelp ? '🆘 已请求帮助' : '无求助'}\n${f.helpMessage ? `• **消息:** ${f.helpMessage}` : ''}\n\n⚠️ ${f.alert_message}\n\n**立即撤离！**`; },
+    farm: (ctx) => { const f = ctx.currentUserFarm; if (!f) return '未找到农场。请先注册您的位置。'; return `🏠 **你的农场 — ${f.name}**\n\n• **风险:** ${riskLabel(f.risk_level, 'zh')}\n• **距火时间:** ${f.estimated_time_to_fire_hours}小时\n• **状态:** ${f.needsHelp ? '🆘 已请求帮助' : '无求助'}\n${f.helpMessage ? `• **消息:** ${t(f.helpMessage, 'zh')}` : ''}\n\n⚠️ ${t(f.alert_message, 'zh')}\n\n**立即撤离！**`; },
     shelter: (ctx) => { const open = ctx.facilities.filter(f => f.capacity_available > 0); return `🏥 **避难所** (${open.length}个可用, 共${open.reduce((s,f) => s + f.capacity_available, 0)}个位置)\n\n${ctx.facilities.map(f => `• **${f.name}** — ${f.capacity_available === 0 ? '已满' : `${f.capacity_available}/${f.capacity_total}`}\n  接受: ${f.accepts.join(', ')} · ${f.contact}`).join('\n\n')}`; },
     neighbor: (ctx) => { const h = ctx.fellowFarmers.filter(f => f.willingToHelp); const n = ctx.fellowFarmers.filter(f => f.needsHelp); let r = `👥 **愿意帮助的邻居** (${h.length})\n\n${h.map(f => `• **${f.name}** (${f.owner}) — ${f.spare_capacity}个空位\n  _"${f.helpMessage}"_`).join('\n\n')}`; if (n.length) r += `\n\n---\n\n🆘 **需要帮助** (${n.length})\n\n${n.map(f => `• **${f.name}** — ${f.sosMessage || '需要帮助'}`).join('\n\n')}`; return r; },
-    sos: (ctx) => { const sf = (ctx.fireData.farms_at_risk || []).filter(f => f.needsHelp); const sn = ctx.fellowFarmers.filter(f => f.needsHelp); const lines = [...sf.map(f => `• **${f.name}** — ${riskLabel(f.risk_level, 'zh')}, ${f.estimated_time_to_fire_hours}小时\n  _"${f.helpMessage}"_`), ...sn.map(f => `• **${f.name}** — 🆘 ${f.sosMessage || '需要帮助'}`)]; return `🆘 **需要帮助的人** (${sf.length + sn.length})\n\n${lines.join('\n\n')}`; },
+    sos: (ctx) => { const sf = (ctx.fireData.farms_at_risk || []).filter(f => f.needsHelp); const sn = ctx.fellowFarmers.filter(f => f.needsHelp); const lines = [...sf.map(f => `• **${f.name}** — ${riskLabel(f.risk_level, 'zh')}, ${f.estimated_time_to_fire_hours}小时\n  _"${t(f.helpMessage, 'zh')}"_`), ...sn.map(f => `• **${f.name}** — 🆘 ${f.sosMessage || '需要帮助'}`)]; return `🆘 **需要帮助的人** (${sf.length + sn.length})\n\n${lines.join('\n\n')}`; },
     route: () => `🛣️ **撤离路线**\n\n• **I-15南** → Del Mar Fairgrounds（最佳, 28分钟）\n\n⚠️ 避免东北方向道路。\n\n装载优先: 怀孕/受伤动物优先。`,
     animal: (ctx) => `🐴 **危险动物**\n\n• **危险农场:** ${ctx.fireData.farms_at_risk?.length || 0}\n• 你的农场: 150头牛 + 8匹马\n\n**避难所容量:**\n${ctx.facilities.filter(f => f.capacity_available > 0).map(f => `• ${f.name}: ${f.capacity_available} (${f.accepts.join(', ')})`).join('\n')}`,
     weather: (ctx) => { const w = ctx.fireData.wind || {}; const wx = ctx.fireData.weather || {}; return `🌡️ **天气状况**\n\n• **温度:** ${wx.temp_f}°F\n• **湿度:** ${wx.humidity_pct}%\n• **风速:** ${w.speed_mph} mph, 阵风 ${w.gusts_mph}\n• **方向:** ${w.direction_deg}°\n\n圣安娜风条件 — 火势迅速蔓延。`; },
@@ -183,10 +251,10 @@ const RESPONSES = {
     welcome: `Xin chào! Tôi là trợ lý khẩn cấp **WildfireWizards**. Hỏi tôi về cháy, trang trại, nơi trú ẩn. Gõ **"giúp tôi"**.`,
     greet: () => `Chào mừng đến **WildfireWizards**:\n\n• **Cháy** — tình trạng\n• **Trang trại** — mức rủi ro\n• **Nơi trú ẩn** — sức chứa\n• **Hàng xóm** — ai giúp được\n• **Đường** — lối thoát an toàn`,
     fire: (ctx) => { const w = ctx.fireData.wind || {}; const wx = ctx.fireData.weather || {}; return `🔥 **Cháy Lilac — Bonsall**\n\n• **Điểm nóng:** ${ctx.fireData.active_hotspots?.length || 0}\n• **Gió:** ${w.speed_mph} mph, giật ${w.gusts_mph} mph, hướng ${w.direction_deg}°\n• **Thời tiết:** ${wx.temp_f}°F, ${wx.humidity_pct}% ẩm (cực kỳ khô)\n• **Trang trại nguy hiểm:** ${ctx.fireData.farms_at_risk?.length || 0}\n\nLửa lan về phía tây nam. **Khuyến nghị sơ tán ngay.**`; },
-    farm: (ctx) => { const f = ctx.currentUserFarm; if (!f) return 'Không tìm thấy trang trại. Đăng ký vị trí trước.'; return `🏠 **Trang trại của bạn — ${f.name}**\n\n• **Rủi ro:** ${riskLabel(f.risk_level, 'vi')}\n• **Thời gian đến lửa:** ${f.estimated_time_to_fire_hours}h\n• **Trạng thái:** ${f.needsHelp ? '🆘 Đã yêu cầu giúp đỡ' : 'Không yêu cầu'}\n${f.helpMessage ? `• **Tin nhắn:** ${f.helpMessage}` : ''}\n\n⚠️ ${f.alert_message}\n\n**Sơ tán ngay!**`; },
+    farm: (ctx) => { const f = ctx.currentUserFarm; if (!f) return 'Không tìm thấy trang trại. Đăng ký vị trí trước.'; return `🏠 **Trang trại của bạn — ${f.name}**\n\n• **Rủi ro:** ${riskLabel(f.risk_level, 'vi')}\n• **Thời gian đến lửa:** ${f.estimated_time_to_fire_hours}h\n• **Trạng thái:** ${f.needsHelp ? '🆘 Đã yêu cầu giúp đỡ' : 'Không yêu cầu'}\n${f.helpMessage ? `• **Tin nhắn:** ${t(f.helpMessage, 'vi')}` : ''}\n\n⚠️ ${t(f.alert_message, 'vi')}\n\n**Sơ tán ngay!**`; },
     shelter: (ctx) => { const open = ctx.facilities.filter(f => f.capacity_available > 0); return `🏥 **Nơi trú ẩn** (${open.length} có sẵn, ${open.reduce((s,f) => s + f.capacity_available, 0)} chỗ)\n\n${ctx.facilities.map(f => `• **${f.name}** — ${f.capacity_available === 0 ? 'ĐẦY' : `${f.capacity_available}/${f.capacity_total}`}\n  Nhận: ${f.accepts.join(', ')} · ${f.contact}`).join('\n\n')}`; },
     neighbor: (ctx) => { const h = ctx.fellowFarmers.filter(f => f.willingToHelp); const n = ctx.fellowFarmers.filter(f => f.needsHelp); let r = `👥 **Hàng xóm giúp đỡ** (${h.length})\n\n${h.map(f => `• **${f.name}** (${f.owner}) — ${f.spare_capacity} chỗ\n  _"${f.helpMessage}"_`).join('\n\n')}`; if (n.length) r += `\n\n---\n\n🆘 **Cần giúp đỡ** (${n.length})\n\n${n.map(f => `• **${f.name}** — ${f.sosMessage || 'Cần giúp'}`).join('\n\n')}`; return r; },
-    sos: (ctx) => { const sf = (ctx.fireData.farms_at_risk || []).filter(f => f.needsHelp); const sn = ctx.fellowFarmers.filter(f => f.needsHelp); const lines = [...sf.map(f => `• **${f.name}** — ${riskLabel(f.risk_level, 'vi')}, ${f.estimated_time_to_fire_hours}h\n  _"${f.helpMessage}"_`), ...sn.map(f => `• **${f.name}** — 🆘 ${f.sosMessage || 'Cần giúp'}`)]; return `🆘 **Người cần giúp đỡ** (${sf.length + sn.length})\n\n${lines.join('\n\n')}`; },
+    sos: (ctx) => { const sf = (ctx.fireData.farms_at_risk || []).filter(f => f.needsHelp); const sn = ctx.fellowFarmers.filter(f => f.needsHelp); const lines = [...sf.map(f => `• **${f.name}** — ${riskLabel(f.risk_level, 'vi')}, ${f.estimated_time_to_fire_hours}h\n  _"${t(f.helpMessage, 'vi')}"_`), ...sn.map(f => `• **${f.name}** — 🆘 ${f.sosMessage || 'Cần giúp'}`)]; return `🆘 **Người cần giúp đỡ** (${sf.length + sn.length})\n\n${lines.join('\n\n')}`; },
     route: () => `🛣️ **Đường sơ tán**\n\n• **I-15 Nam** → Del Mar Fairgrounds (tốt nhất, 28 phút)\n\n⚠️ Tránh hướng đông bắc.\n\nƯu tiên: mang thai/bị thương trước.`,
     animal: (ctx) => `🐴 **Động vật gặp nguy**\n\n• **Trang trại nguy hiểm:** ${ctx.fireData.farms_at_risk?.length || 0}\n• Trang trại bạn: 150 bò + 8 ngựa\n\n**Sức chứa nơi trú ẩn:**\n${ctx.facilities.filter(f => f.capacity_available > 0).map(f => `• ${f.name}: ${f.capacity_available} (${f.accepts.join(', ')})`).join('\n')}`,
     weather: (ctx) => { const w = ctx.fireData.wind || {}; const wx = ctx.fireData.weather || {}; return `🌡️ **Thời tiết**\n\n• **Nhiệt độ:** ${wx.temp_f}°F\n• **Độ ẩm:** ${wx.humidity_pct}%\n• **Gió:** ${w.speed_mph} mph, giật ${w.gusts_mph}\n• **Hướng:** ${w.direction_deg}°\n\nĐiều kiện Santa Ana — lửa lan nhanh.`; },
@@ -200,10 +268,10 @@ const RESPONSES = {
     welcome: `Kumusta! Ako ang **WildfireWizards** emergency assistant. Magtanong tungkol sa sunog, farm, shelter, o kapitbahay.`,
     greet: () => `Welcome sa **WildfireWizards**:\n\n• **Sunog** — status\n• **Farm ko** — risk level\n• **Shelter** — kapasidad\n• **Kapitbahay** — sino makakatulong\n• **Ruta** — ligtas na daan`,
     fire: (ctx) => { const w = ctx.fireData.wind || {}; const wx = ctx.fireData.weather || {}; return `🔥 **Lilac Fire — Bonsall**\n\n• **Hotspots:** ${ctx.fireData.active_hotspots?.length || 0}\n• **Hangin:** ${w.speed_mph} mph, bugso ${w.gusts_mph} mph, direksyon ${w.direction_deg}°\n• **Panahon:** ${wx.temp_f}°F, ${wx.humidity_pct}% humidity (sobrang tuyo)\n• **Farms sa panganib:** ${ctx.fireData.farms_at_risk?.length || 0}\n\nKumakalat ang apoy sa timog-kanluran. **Mag-evacuate na.**`; },
-    farm: (ctx) => { const f = ctx.currentUserFarm; if (!f) return 'Hindi nakita ang farm. Mag-register muna ng lokasyon.'; return `🏠 **Farm Mo — ${f.name}**\n\n• **Risk:** ${riskLabel(f.risk_level, 'tl')}\n• **Oras bago ang apoy:** ${f.estimated_time_to_fire_hours}h\n• **Status:** ${f.needsHelp ? '🆘 Humingi ng tulong' : 'Walang request'}\n${f.helpMessage ? `• **Mensahe:** ${f.helpMessage}` : ''}\n\n⚠️ ${f.alert_message}\n\n**Mag-evacuate agad!**`; },
+    farm: (ctx) => { const f = ctx.currentUserFarm; if (!f) return 'Hindi nakita ang farm. Mag-register muna ng lokasyon.'; return `🏠 **Farm Mo — ${f.name}**\n\n• **Risk:** ${riskLabel(f.risk_level, 'tl')}\n• **Oras bago ang apoy:** ${f.estimated_time_to_fire_hours}h\n• **Status:** ${f.needsHelp ? '🆘 Humingi ng tulong' : 'Walang request'}\n${f.helpMessage ? `• **Mensahe:** ${t(f.helpMessage, 'tl')}` : ''}\n\n⚠️ ${t(f.alert_message, 'tl')}\n\n**Mag-evacuate agad!**`; },
     shelter: (ctx) => { const open = ctx.facilities.filter(f => f.capacity_available > 0); return `🏥 **Mga Shelter** (${open.length} available, ${open.reduce((s,f) => s + f.capacity_available, 0)} slots)\n\n${ctx.facilities.map(f => `• **${f.name}** — ${f.capacity_available === 0 ? 'PUNO' : `${f.capacity_available}/${f.capacity_total}`}\n  Tinatanggap: ${f.accepts.join(', ')} · ${f.contact}`).join('\n\n')}`; },
     neighbor: (ctx) => { const h = ctx.fellowFarmers.filter(f => f.willingToHelp); const n = ctx.fellowFarmers.filter(f => f.needsHelp); let r = `👥 **Tumutulong** (${h.length})\n\n${h.map(f => `• **${f.name}** (${f.owner}) — ${f.spare_capacity} slots\n  _"${f.helpMessage}"_`).join('\n\n')}`; if (n.length) r += `\n\n---\n\n🆘 **Kailangan ng Tulong** (${n.length})\n\n${n.map(f => `• **${f.name}** — ${f.sosMessage || 'Kailangan ng tulong'}`).join('\n\n')}`; return r; },
-    sos: (ctx) => { const sf = (ctx.fireData.farms_at_risk || []).filter(f => f.needsHelp); const sn = ctx.fellowFarmers.filter(f => f.needsHelp); const lines = [...sf.map(f => `• **${f.name}** — ${riskLabel(f.risk_level, 'tl')}, ${f.estimated_time_to_fire_hours}h\n  _"${f.helpMessage}"_`), ...sn.map(f => `• **${f.name}** — 🆘 ${f.sosMessage || 'Kailangan ng tulong'}`)]; return `🆘 **Kailangan ng Tulong** (${sf.length + sn.length})\n\n${lines.join('\n\n')}`; },
+    sos: (ctx) => { const sf = (ctx.fireData.farms_at_risk || []).filter(f => f.needsHelp); const sn = ctx.fellowFarmers.filter(f => f.needsHelp); const lines = [...sf.map(f => `• **${f.name}** — ${riskLabel(f.risk_level, 'tl')}, ${f.estimated_time_to_fire_hours}h\n  _"${t(f.helpMessage, 'tl')}"_`), ...sn.map(f => `• **${f.name}** — 🆘 ${f.sosMessage || 'Kailangan ng tulong'}`)]; return `🆘 **Kailangan ng Tulong** (${sf.length + sn.length})\n\n${lines.join('\n\n')}`; },
     route: () => `🛣️ **Evacuation Route**\n\n• **I-15 South** → Del Mar Fairgrounds (pinakamabuti, 28 min)\n\n⚠️ Iwasan ang northeast na daan.\n\nPrioridad: buntis/sugatan muna.`,
     animal: (ctx) => `🐴 **Mga Hayop sa Panganib**\n\n• **Farms sa panganib:** ${ctx.fireData.farms_at_risk?.length || 0}\n• Farm mo: 150 baka + 8 kabayo\n\n**Kapasidad ng shelter:**\n${ctx.facilities.filter(f => f.capacity_available > 0).map(f => `• ${f.name}: ${f.capacity_available} (${f.accepts.join(', ')})`).join('\n')}`,
     weather: (ctx) => { const w = ctx.fireData.wind || {}; const wx = ctx.fireData.weather || {}; return `🌡️ **Panahon**\n\n• **Temperatura:** ${wx.temp_f}°F\n• **Humidity:** ${wx.humidity_pct}%\n• **Hangin:** ${w.speed_mph} mph, bugso ${w.gusts_mph}\n• **Direksyon:** ${w.direction_deg}°\n\nSanta Ana conditions — mabilis kumalat ang apoy.`; },
@@ -217,10 +285,10 @@ const RESPONSES = {
     welcome: `안녕하세요! **WildfireWizards** 긴급 도우미입니다. 화재, 농장, 대피소에 대해 물어보세요. **"도움"** 을 입력하세요.`,
     greet: () => `**WildfireWizards**에 오신 것을 환영합니다:\n\n• **화재** — 현황\n• **내 농장** — 위험 수준\n• **대피소** — 수용량\n• **이웃** — 도움 가능\n• **경로** — 안전한 길`,
     fire: (ctx) => { const w = ctx.fireData.wind || {}; const wx = ctx.fireData.weather || {}; return `🔥 **라일락 화재 — Bonsall**\n\n• **핫스팟:** ${ctx.fireData.active_hotspots?.length || 0}\n• **바람:** ${w.speed_mph} mph, 돌풍 ${w.gusts_mph} mph, 방향 ${w.direction_deg}°\n• **날씨:** ${wx.temp_f}°F, 습도 ${wx.humidity_pct}% (극도로 건조)\n• **위험 농장:** ${ctx.fireData.farms_at_risk?.length || 0}\n\n화재가 남서쪽으로 확산 중. **즉시 대피하세요.**`; },
-    farm: (ctx) => { const f = ctx.currentUserFarm; if (!f) return '농장을 찾을 수 없습니다. 먼저 위치를 등록하세요.'; return `🏠 **당신의 농장 — ${f.name}**\n\n• **위험:** ${riskLabel(f.risk_level, 'ko')}\n• **화재까지:** ${f.estimated_time_to_fire_hours}시간\n• **상태:** ${f.needsHelp ? '🆘 도움 요청함' : '요청 없음'}\n${f.helpMessage ? `• **메시지:** ${f.helpMessage}` : ''}\n\n⚠️ ${f.alert_message}\n\n**지금 대피하세요!**`; },
+    farm: (ctx) => { const f = ctx.currentUserFarm; if (!f) return '농장을 찾을 수 없습니다. 먼저 위치를 등록하세요.'; return `🏠 **당신의 농장 — ${f.name}**\n\n• **위험:** ${riskLabel(f.risk_level, 'ko')}\n• **화재까지:** ${f.estimated_time_to_fire_hours}시간\n• **상태:** ${f.needsHelp ? '🆘 도움 요청함' : '요청 없음'}\n${f.helpMessage ? `• **메시지:** ${t(f.helpMessage, 'ko')}` : ''}\n\n⚠️ ${t(f.alert_message, 'ko')}\n\n**지금 대피하세요!**`; },
     shelter: (ctx) => { const open = ctx.facilities.filter(f => f.capacity_available > 0); return `🏥 **대피소** (${open.length}개 이용 가능, ${open.reduce((s,f) => s + f.capacity_available, 0)}자리)\n\n${ctx.facilities.map(f => `• **${f.name}** — ${f.capacity_available === 0 ? '만석' : `${f.capacity_available}/${f.capacity_total}`}\n  수용: ${f.accepts.join(', ')} · ${f.contact}`).join('\n\n')}`; },
     neighbor: (ctx) => { const h = ctx.fellowFarmers.filter(f => f.willingToHelp); const n = ctx.fellowFarmers.filter(f => f.needsHelp); let r = `👥 **도움 가능한 이웃** (${h.length})\n\n${h.map(f => `• **${f.name}** (${f.owner}) — ${f.spare_capacity}자리\n  _"${f.helpMessage}"_`).join('\n\n')}`; if (n.length) r += `\n\n---\n\n🆘 **도움 필요** (${n.length})\n\n${n.map(f => `• **${f.name}** — ${f.sosMessage || '도움 필요'}`).join('\n\n')}`; return r; },
-    sos: (ctx) => { const sf = (ctx.fireData.farms_at_risk || []).filter(f => f.needsHelp); const sn = ctx.fellowFarmers.filter(f => f.needsHelp); const lines = [...sf.map(f => `• **${f.name}** — ${riskLabel(f.risk_level, 'ko')}, ${f.estimated_time_to_fire_hours}시간\n  _"${f.helpMessage}"_`), ...sn.map(f => `• **${f.name}** — 🆘 ${f.sosMessage || '도움 필요'}`)]; return `🆘 **도움이 필요한 사람** (${sf.length + sn.length})\n\n${lines.join('\n\n')}`; },
+    sos: (ctx) => { const sf = (ctx.fireData.farms_at_risk || []).filter(f => f.needsHelp); const sn = ctx.fellowFarmers.filter(f => f.needsHelp); const lines = [...sf.map(f => `• **${f.name}** — ${riskLabel(f.risk_level, 'ko')}, ${f.estimated_time_to_fire_hours}시간\n  _"${t(f.helpMessage, 'ko')}"_`), ...sn.map(f => `• **${f.name}** — 🆘 ${f.sosMessage || '도움 필요'}`)]; return `🆘 **도움이 필요한 사람** (${sf.length + sn.length})\n\n${lines.join('\n\n')}`; },
     route: () => `🛣️ **대피 경로**\n\n• **I-15 남쪽** → Del Mar Fairgrounds (최적, 28분)\n\n⚠️ 북동쪽 도로 피하세요.\n\n우선순위: 임신/부상 동물 먼저.`,
     animal: (ctx) => `🐴 **위험한 동물**\n\n• **위험 농장:** ${ctx.fireData.farms_at_risk?.length || 0}\n• 내 농장: 소 150마리 + 말 8마리\n\n**대피소 수용량:**\n${ctx.facilities.filter(f => f.capacity_available > 0).map(f => `• ${f.name}: ${f.capacity_available} (${f.accepts.join(', ')})`).join('\n')}`,
     weather: (ctx) => { const w = ctx.fireData.wind || {}; const wx = ctx.fireData.weather || {}; return `🌡️ **날씨 현황**\n\n• **온도:** ${wx.temp_f}°F\n• **습도:** ${wx.humidity_pct}%\n• **바람:** ${w.speed_mph} mph, 돌풍 ${w.gusts_mph}\n• **방향:** ${w.direction_deg}°\n\n산타아나 조건 — 화재 급속 확산.`; },

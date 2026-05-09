@@ -99,7 +99,7 @@ function createDangerFarmIcon(farm) {
   });
 }
 
-export default function FarmMarkers({ farms, activeFarm }) {
+export default function FarmMarkers({ farms, activeFarm, userLocation }) {
   if (!farms?.length) return null;
 
   return (
@@ -110,10 +110,14 @@ export default function FarmMarkers({ farms, activeFarm }) {
           ? createCurrentUserIcon(farm)
           : createDangerFarmIcon(farm);
 
+        const position = isCurrentUser && userLocation
+          ? [userLocation.lat, userLocation.lon]
+          : [farm.lat, farm.lon];
+
         return (
           <Marker
             key={farm.farm_id}
-            position={[farm.lat, farm.lon]}
+            position={position}
             icon={icon}
             zIndexOffset={isCurrentUser ? 1200 : 600}
           >

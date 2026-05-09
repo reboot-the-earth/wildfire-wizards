@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import FarmInput from '../farm/FarmInput';
 import { demoFarms } from '../../data/mockFarmProfiles';
 
-export default function LeftSidebar({ isOpen, onToggle, onGeneratePlan, farmData, setFarmData, isGenerating, pickMode, onTogglePickMode }) {
+export default function LeftSidebar({ isOpen, onToggle, onGeneratePlan, farmData, setFarmData, isGenerating, pickMode, onTogglePickMode, farmsAtRisk = [] }) {
   const loadDemoFarm = (farm) => {
     setFarmData({
       name: farm.name,
@@ -131,6 +131,7 @@ export default function LeftSidebar({ isOpen, onToggle, onGeneratePlan, farmData
                 setFarmData={setFarmData}
                 pickMode={pickMode}
                 onTogglePickMode={onTogglePickMode}
+                farmsAtRisk={farmsAtRisk}
               />
             </div>
 

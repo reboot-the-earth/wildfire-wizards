@@ -26,7 +26,7 @@ const LOCATION_MODES = [
   { id: 'coords',  label: 'Lat/Lon', icon: '⌖' },
 ];
 
-export default function FarmInput({ farmData, setFarmData, pickMode = false, onTogglePickMode }) {
+export default function FarmInput({ farmData, setFarmData, pickMode = false, onTogglePickMode, farmsAtRisk = [] }) {
   const [step, setStep] = useState(0);
 
   const [locMode, setLocMode] = useState('address');
@@ -244,6 +244,41 @@ export default function FarmInput({ farmData, setFarmData, pickMode = false, onT
                 </svg>
                 {pickMode ? 'Click the map to drop pin · Cancel' : 'Or drop a pin on the map'}
               </button>
+            )}
+
+            {/* Existing farms as quick-select locations */}
+            {farmsAtRisk.length > 0 && (
+              <div>
+                <label className="block text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-1.5">Farms in fire zone</label>
+                <div className="flex flex-wrap gap-1.5">
+                  {farmsAtRisk.map((f) => {
+                    const isSelected = farmData.location
+                      && Math.abs(farmData.location.lat - f.lat) < 0.001
+                      && Math.abs(farmData.location.lon - f.lon) < 0.001;
+                    return (
+                      <button
+                        key={f.farm_id}
+                        onClick={() => {
+                          setResolvedLocation({ lat: f.lat, lon: f.lon }, f.name);
+                          updateField('name', f.name);
+                          setGeoStatus({ kind: 'ok', source: 'farm', text: f.name });
+                        }}
+                        className={`
+                          px-2.5 py-1.5 rounded-md text-[10px] font-semibold border transition-all
+                          ${isSelected
+                            ? 'bg-red-50 border-red-300 text-red-700'
+                            : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-red-300 hover:bg-red-50/50'}
+                        `}
+                      >
+                        <span className="mr-1">
+                          {f.risk_level === 'critical' ? '🔴' : f.risk_level === 'high' ? '🟠' : '🟡'}
+                        </span>
+                        {f.name} · {f.estimated_time_to_fire_hours}h
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             )}
 
             {/* Address mode */}

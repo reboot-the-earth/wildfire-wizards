@@ -227,6 +227,7 @@ export default function App() {
           isGenerating={isGenerating}
           pickMode={pickMode}
           onTogglePickMode={() => setPickMode((v) => !v)}
+          farmsAtRisk={mockFireData.farms_at_risk || []}
         />
 
         {/* Map */}

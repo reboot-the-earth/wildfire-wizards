@@ -81,7 +81,7 @@ export default function EvacMap({
       )}
 
       {showFarms && farms && (
-        <FarmMarkers farms={farms} activeFarm={activeFarm} />
+        <FarmMarkers farms={farms} activeFarm={activeFarm} userLocation={userLocation} />
       )}
 
       {showNeighborFarms && fellowFarmers?.length > 0 && (
