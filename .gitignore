@@ -5,18 +5,29 @@ __pycache__/
 *.py[cod]
 *.pyo
 .pytest_cache/
+coverage/
+.python-version
+
+# Secrets / local env (never commit)
+.env
+.env.*
+
+# Logs
+*.log
 
 # Frontend deps/build/cache
+node_modules/
 frontend/node_modules/
 frontend/dist/
 frontend/.vite/
 
-# Editor / OS
+# Editor / OS / local tooling
 .DS_Store
 .idea/
 .vscode/
+.claude/
 
-# Alert system runtime artifacts
+# Alert system runtime artifacts (created at runtime by alert_runner)
 modules/alert_system/farms.db
 modules/alert_system/alerts.log
 modules/alert_system/outbox/

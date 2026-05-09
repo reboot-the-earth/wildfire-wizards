@@ -119,6 +119,76 @@ function normalizeRoutes(raw) {
 }
 
 /**
+ * Normalize Person 4's farmer_input.get_evacuation_plan() output into UI shape.
+ *
+ * Python returns checklist items as plain strings; the Checklist React component
+ * expects {id, text, checked}. Trip cards already match the schema closely; we
+ * just attach status + compute total_trips / total_evacuation_hours including
+ * an optional drive_time_per_trip_min.
+ */
+function normalizeFarmerPlan(raw, { driveTimePerTripMin = 38 } = {}) {
+  if (!raw || raw.error) return null;
+
+  const slug = (s) =>
+    String(s || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_|_$/g, '')
+      .slice(0, 32) || 'item';
+
+  const trips = (raw.priority_plan || []).map((t, i) => ({
+    order: t.order ?? i + 1,
+    trip: t.trip ?? i + 1,
+    animals: t.animals || `${t.count || ''} ${t.species || ''}`.trim(),
+    count: t.count || 0,
+    species: t.species || 'cattle',
+    reason: t.reason || '',
+    load_time_est_min: t.load_time_est_min ?? t.load_time_min ?? 0,
+    handling: t.handling || t.special_handling || '',
+    sedation_needed: t.sedation_needed || false,
+    can_transport: t.can_transport !== false,
+    status: 'pending',
+  }));
+
+  const checklist = {};
+  Object.entries(raw.checklist || {}).forEach(([section, items]) => {
+    const list = Array.isArray(items) ? items : [];
+    checklist[section] = list.map((item, i) => {
+      if (typeof item === 'string') {
+        return { id: `${section}_${slug(item)}_${i}`, text: item, checked: false };
+      }
+      return {
+        id: item.id || `${section}_${i}`,
+        text: item.text || String(item),
+        checked: item.checked || false,
+      };
+    });
+  });
+
+  const loadingMin = raw.time_estimate?.loading_time_total_min || 0;
+  const totalTrips = trips.filter((t) => t.can_transport).length;
+  const totalEvacMin = loadingMin + totalTrips * driveTimePerTripMin;
+
+  return {
+    farm: raw.farm || null,
+    animals: raw.animals || [],
+    transport: raw.transport || null,
+    priority_plan: trips,
+    time_estimate: {
+      loading_time_total_min: loadingMin,
+      drive_time_per_trip_min: driveTimePerTripMin,
+      total_trips: totalTrips,
+      total_evacuation_hours: Math.round((totalEvacMin / 60) * 10) / 10,
+      time_available_min: raw.time_estimate?.time_available_min ?? null,
+      note: raw.time_estimate?.note || '',
+    },
+    triage_warning: raw.triage_warning || null,
+    warnings: raw.warnings || [],
+    checklist,
+  };
+}
+
+/**
  * Normalize evacuation plan from Person 3's get_evacuation_match() into UI format.
  */
 function normalizeEvacPlan(raw) {
@@ -194,6 +264,42 @@ export async function fetchEvacuationPlan({
     }),
   });
   if (ok && data) return normalizeEvacPlan(data);
+  return null;
+}
+
+/**
+ * Generate Person 4's farmer evacuation plan + checklist.
+ *
+ * @param {object} args
+ * @param {{id:string,name:string,lat:number,lon:number,smoke_within_5_miles?:boolean}} args.farm
+ * @param {Array<{species:string,count:number,special_needs?:string[]}>} args.animals
+ * @param {{trailers:number,type:string,capacity?:object}} args.transport
+ * @param {number} args.timeAvailableHours
+ * @param {number} [args.driveTimePerTripMin=38] used to compute total evacuation time
+ */
+export async function fetchFarmerPlan({
+  farm,
+  animals,
+  transport,
+  timeAvailableHours,
+  driveTimePerTripMin = 38,
+}) {
+  const { data, ok } = await fetchJSON(`${API_BASE}/farmer-plan`, {
+    method: 'POST',
+    body: JSON.stringify({
+      farm,
+      animals,
+      transport,
+      time_available_hours: timeAvailableHours,
+    }),
+  });
+  if (ok && data) return normalizeFarmerPlan(data, { driveTimePerTripMin });
+  return null;
+}
+
+export async function fetchFarmerProfiles() {
+  const { data, ok } = await fetchJSON(`${API_BASE}/farmer-profiles`);
+  if (ok && Array.isArray(data?.profiles)) return data.profiles;
   return null;
 }
 

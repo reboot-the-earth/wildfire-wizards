@@ -75,18 +75,52 @@ All modules agree on these before splitting:
 
 ## Setup
 
+The backend is a Flask integration layer that wraps each module's export
+function. The frontend is a Vite + React app that calls those endpoints (and
+falls back to bundled mock data so the demo always renders).
+
 ```bash
 git clone <repo-url>
-cd noherdeleft
-pip install -r requirements.txt
+cd wildfire-wizards
 
-# Pre-download datasets (do this before the hackathon)
+# Backend
+pip install -r requirements.txt        # flask, flask-cors, shapely, requests, networkx, pytest
+python api.py                          # serves http://localhost:5001
+
+# Frontend (separate terminal)
+cd frontend
+npm install
+npm run dev                            # serves http://localhost:3000
+```
+
+Pre-download the heavy GIS datasets once before the demo (optional — the
+modules fall back to demo data from `config.json` when these are absent):
+
+```bash
 python modules/fire_detection/download_data.py
 python modules/routing/download_roads.py
-
-# Start the frontend
-cd frontend && python -m http.server 8000
 ```
+
+Run the test suite:
+
+```bash
+python -m pytest modules/farmer_input/tests \
+                 modules/facilities/tests \
+                 modules/routing/tests \
+                 modules/fire_detection/tests -q
+```
+
+### Endpoints
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| `GET`  | `/api/health` | Reports which modules loaded |
+| `GET`  | `/api/fire?live=true` | Person 1: fire perimeters + farms at risk |
+| `GET`  | `/api/facilities` | Person 3: facility database with capacity |
+| `POST` | `/api/routes` | Person 2: safe routes (`{farm_lat, farm_lon}`) |
+| `POST` | `/api/plan` | Person 3: facility match + trip schedule |
+| `GET`  | `/api/farmer-profiles` | Person 4: 3 demo farm profiles |
+| `POST` | `/api/farmer-plan` | Person 4: priority loading plan + checklist |
 
 ## Integration Timeline
 
