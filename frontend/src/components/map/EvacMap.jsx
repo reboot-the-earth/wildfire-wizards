@@ -5,6 +5,7 @@ import FacilityMarkers from './FacilityMarkers';
 import RouteOverlay from './RouteOverlay';
 import WindOverlay from './WindOverlay';
 import FarmMarkers from './FarmMarkers';
+import UserPin from './UserPin';
 
 function MapController({ center, zoom }) {
   const map = useMap();
@@ -39,6 +40,9 @@ export default function EvacMap({
   activeFarm,
   onFacilityClick,
   onMapClick,
+  userLocation,
+  pickMode = false,
+  onPickLocation,
 }) {
   return (
     <MapContainer
@@ -81,6 +85,12 @@ export default function EvacMap({
       {showFire && fireData?.wind && (
         <WindOverlay wind={fireData.wind} fireOrigin={[33.24, -117.18]} />
       )}
+
+      <UserPin
+        location={userLocation}
+        pickMode={pickMode}
+        onPick={onPickLocation}
+      />
     </MapContainer>
   );
 }

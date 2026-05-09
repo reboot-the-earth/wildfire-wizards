@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import AnimalSelector from './AnimalSelector';
 import TrailerConfig from './TrailerConfig';
@@ -26,7 +26,7 @@ const LOCATION_MODES = [
   { id: 'coords',  label: 'Lat/Lon', icon: '⌖' },
 ];
 
-export default function FarmInput({ farmData, setFarmData }) {
+export default function FarmInput({ farmData, setFarmData, pickMode = false, onTogglePickMode }) {
   const [step, setStep] = useState(0);
 
   const [locMode, setLocMode] = useState('address');
@@ -34,24 +34,44 @@ export default function FarmInput({ farmData, setFarmData }) {
   const [coordsInput, setCoordsInput] = useState('');
   const [geoStatus, setGeoStatus] = useState({ kind: 'idle' });
 
+  // Track which (lat, lon) we've already announced in geoStatus so external
+  // updates (map pin drops, demo-farm quick-loads) get a confirmation pill
+  // without the typing-driven handlers fighting us in a loop.
+  const lastAnnouncedRef = useRef(null);
+
   useEffect(() => {
     if (!farmData.location) return;
     if (farmData.zip && !zipInput) setZipInput(farmData.zip);
     if (!coordsInput) {
       setCoordsInput(`${farmData.location.lat.toFixed(4)}, ${farmData.location.lon.toFixed(4)}`);
     }
-  }, [farmData.location, farmData.zip]);
+    const key = `${farmData.location.lat.toFixed(5)},${farmData.location.lon.toFixed(5)}`;
+    if (lastAnnouncedRef.current !== key && geoStatus.kind !== 'loading') {
+      lastAnnouncedRef.current = key;
+      setGeoStatus({
+        kind: 'ok',
+        source: farmData._addressFromPin ? 'map pin' : (geoStatus.source ?? 'set'),
+        text: farmData.address || `${farmData.location.lat.toFixed(4)}, ${farmData.location.lon.toFixed(4)}`,
+      });
+      // Keep the coords box mirrored to the live location after an external set.
+      setCoordsInput(`${farmData.location.lat.toFixed(4)}, ${farmData.location.lon.toFixed(4)}`);
+    }
+  }, [farmData.location, farmData.zip, farmData.address, farmData._addressFromPin]);
 
   const updateField = (field, value) => {
     setFarmData((prev) => ({ ...prev, [field]: value }));
   };
 
   const setResolvedLocation = (loc, addressText) => {
+    // Mark this coordinate as "already announced" so the location-watching
+    // effect won't clobber the richer status text the typed handlers set.
+    lastAnnouncedRef.current = `${loc.lat.toFixed(5)},${loc.lon.toFixed(5)}`;
     setFarmData((prev) => ({
       ...prev,
       location: { lat: loc.lat, lon: loc.lon },
       address: addressText ?? prev.address,
       zip: loc.zip ?? prev.zip,
+      _addressFromPin: false,
     }));
   };
 
@@ -207,6 +227,24 @@ export default function FarmInput({ farmData, setFarmData }) {
                 })}
               </div>
             </div>
+
+            {/* Drop-pin alternative — works alongside any of the three input modes. */}
+            {onTogglePickMode && (
+              <button
+                onClick={onTogglePickMode}
+                className={`
+                  w-full flex items-center justify-center gap-2 py-2 rounded-lg text-[11px] font-semibold transition-all
+                  ${pickMode
+                    ? 'bg-sky-500 text-white border border-sky-500 shadow-md hover:bg-sky-600'
+                    : 'bg-white text-sky-700 border border-sky-200 hover:border-sky-400 hover:bg-sky-50'}
+                `}
+              >
+                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                </svg>
+                {pickMode ? 'Click the map to drop pin · Cancel' : 'Or drop a pin on the map'}
+              </button>
+            )}
 
             {/* Address mode */}
             {locMode === 'address' && (

@@ -112,10 +112,40 @@ function normalizeFacilities(raw) {
 
 /**
  * Normalize route output from Person 2. Routes already match our format closely.
+ *
+ * The routing engine uses a coarse demo road graph and snaps the farm coords
+ * to the nearest known node — meaning the returned ``route_geometry`` may
+ * start a few km away from where the user actually pinned. To make the map
+ * tell the truth, we prepend ``[origin_lon, origin_lat]`` as the first vertex
+ * of every route line. This way the rendered polyline visibly starts at the
+ * user's pin and connects out to the road network.
  */
-function normalizeRoutes(raw) {
+function normalizeRoutes(raw, origin = null) {
   if (!raw || !raw.routes_to_facilities) return null;
-  return raw;
+  if (!origin || origin.lat == null || origin.lon == null) return raw;
+
+  const originPair = [origin.lon, origin.lat];
+  const sameAsOrigin = (pt) =>
+    Array.isArray(pt) &&
+    pt.length >= 2 &&
+    Math.abs(pt[0] - originPair[0]) < 1e-6 &&
+    Math.abs(pt[1] - originPair[1]) < 1e-6;
+
+  const patched = raw.routes_to_facilities.map((r) => {
+    const geom = r.route_geometry;
+    const coords = geom?.coordinates;
+    if (!Array.isArray(coords) || coords.length === 0) return r;
+    if (sameAsOrigin(coords[0])) return r;
+    return {
+      ...r,
+      route_geometry: {
+        ...geom,
+        coordinates: [originPair, ...coords],
+      },
+    };
+  });
+
+  return { ...raw, routes_to_facilities: patched };
 }
 
 /**
@@ -242,7 +272,7 @@ export async function fetchRoutes(farmLat, farmLon) {
     method: 'POST',
     body: JSON.stringify({ farm_lat: farmLat, farm_lon: farmLon }),
   });
-  if (ok && data) return normalizeRoutes(data);
+  if (ok && data) return normalizeRoutes(data, { lat: farmLat, lon: farmLon });
   return null;
 }
 
