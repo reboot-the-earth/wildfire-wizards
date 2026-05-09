@@ -10,6 +10,7 @@ import { mockFireData } from './data/mockFireData';
 import { mockFacilities } from './data/mockFacilities';
 import { mockRoutes } from './data/mockRoutes';
 import { demoFarms, mockEvacuationPlan, DEMO_STEPS } from './data/mockFarmProfiles';
+import { fetchFarmerPlan } from './utils/api';
 
 const DEFAULT_FARM_DATA = {
   name: '',
@@ -29,6 +30,8 @@ export default function App() {
   const [mapZoom, setMapZoom] = useState(11);
   const [activeFarm, setActiveFarm] = useState(null);
   const [showRoutes, setShowRoutes] = useState(false);
+  const [livePlan, setLivePlan] = useState(null);
+  const [planSource, setPlanSource] = useState(null);
 
   const demo = useDemoMode();
 
@@ -42,16 +45,49 @@ export default function App() {
     return 3.7;
   }, [demo.isDemoMode, demo.step]);
 
-  const handleGeneratePlan = useCallback(() => {
+  const handleGeneratePlan = useCallback(async () => {
     setIsGenerating(true);
-    setTimeout(() => {
-      setIsGenerating(false);
-      setHasPlan(true);
-      setShowRoutes(true);
-      setRightOpen(true);
-      setLeftOpen(false);
-    }, 1500);
-  }, []);
+    const matchedRiskFarm = farmData.location
+      ? mockFireData.farms_at_risk.find(
+          (f) =>
+            Math.abs((f.lat ?? 0) - farmData.location.lat) < 0.05 &&
+            Math.abs((f.lon ?? 0) - farmData.location.lon) < 0.05
+        )
+      : null;
+    const timeAvailableHours =
+      matchedRiskFarm?.estimated_time_to_fire_hours ?? currentCountdownHours ?? 3.7;
+
+    const farmId = (farmData.name || 'farm')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_|_$/g, '');
+
+    const plan = await fetchFarmerPlan({
+      farm: {
+        id: farmId,
+        name: farmData.name || 'Your Farm',
+        lat: farmData.location?.lat ?? null,
+        lon: farmData.location?.lon ?? null,
+      },
+      animals: farmData.animals || [],
+      transport: farmData.transport || { trailers: 1, type: 'stock_trailer' },
+      timeAvailableHours,
+    });
+
+    if (plan) {
+      setLivePlan(plan);
+      setPlanSource('live');
+    } else {
+      setLivePlan(null);
+      setPlanSource('mock');
+    }
+
+    setIsGenerating(false);
+    setHasPlan(true);
+    setShowRoutes(true);
+    setRightOpen(true);
+    setLeftOpen(false);
+  }, [farmData, currentCountdownHours]);
 
   const handleDemoStepChange = useCallback((step) => {
     if (!step) return;
@@ -234,10 +270,11 @@ export default function App() {
         <RightSidebar
           isOpen={rightOpen && hasPlan}
           onToggle={() => setRightOpen(!rightOpen)}
-          plan={hasPlan ? mockEvacuationPlan.priority_plan : []}
-          checklist={hasPlan ? mockEvacuationPlan.checklist : null}
-          triageWarning={hasPlan ? mockEvacuationPlan.triage_warning : null}
-          timeEstimate={hasPlan ? mockEvacuationPlan.time_estimate : null}
+          plan={hasPlan ? (livePlan?.priority_plan ?? mockEvacuationPlan.priority_plan) : []}
+          checklist={hasPlan ? (livePlan?.checklist ?? mockEvacuationPlan.checklist) : null}
+          triageWarning={hasPlan ? (livePlan?.triage_warning ?? mockEvacuationPlan.triage_warning) : null}
+          timeEstimate={hasPlan ? (livePlan?.time_estimate ?? mockEvacuationPlan.time_estimate) : null}
+          planSource={hasPlan ? planSource : null}
         />
       </div>
 

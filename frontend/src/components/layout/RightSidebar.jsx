@@ -1,8 +1,14 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import EvacuationPlan from '../plan/EvacuationPlan';
 
-export default function RightSidebar({ isOpen, onToggle, plan, checklist, triageWarning, timeEstimate }) {
+export default function RightSidebar({ isOpen, onToggle, plan, checklist, triageWarning, timeEstimate, planSource }) {
   const hasPlan = plan && plan.length > 0;
+  const sourceBadge =
+    planSource === 'live'
+      ? { label: 'Live', cls: 'bg-emerald-100 text-emerald-700 border-emerald-200' }
+      : planSource === 'mock'
+        ? { label: 'Demo', cls: 'bg-slate-100 text-slate-500 border-slate-200' }
+        : null;
 
   return (
     <>
@@ -53,7 +59,14 @@ export default function RightSidebar({ isOpen, onToggle, plan, checklist, triage
           >
             <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
               <div>
-                <h2 className="text-xs font-bold text-slate-700 tracking-widest uppercase">Evacuation Plan</h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-xs font-bold text-slate-700 tracking-widest uppercase">Evacuation Plan</h2>
+                  {sourceBadge && (
+                    <span className={`text-[9px] font-semibold uppercase tracking-wider border rounded px-1.5 py-0.5 ${sourceBadge.cls}`}>
+                      {sourceBadge.label}
+                    </span>
+                  )}
+                </div>
                 <p className="text-[11px] text-slate-400 mt-0.5">
                   {hasPlan ? `${plan.length} trips planned` : 'Generate a plan to begin'}
                 </p>
