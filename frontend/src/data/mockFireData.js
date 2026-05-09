@@ -90,10 +90,12 @@ export const mockFireData = {
     {
       farm_id: "valley_center_ranch",
       name: "Valley Center Ranch",
-      lat: 33.22,
-      lon: -117.03,
-      estimated_time_to_fire_hours: 3.7,
+      lat: 33.20,
+      lon: -117.26,
+      estimated_time_to_fire_hours: 3.5,
       risk_level: "high",
+      needsHelp: true,
+      helpMessage: "NEED HELP: 150 cattle + 8 horses, only 1 trailer. Need extra trailers & drivers ASAP!",
       alert_message: "Fire projected to reach your area in ~3.5 hours. Evacuate livestock now."
     },
     {
@@ -103,6 +105,8 @@ export const mockFireData = {
       lon: -117.25,
       estimated_time_to_fire_hours: 2.1,
       risk_level: "critical",
+      needsHelp: true,
+      helpMessage: "URGENT: 24 horses need transport. Looking for any horse trailers nearby!",
       alert_message: "Fire projected to reach your area in ~2 hours. Begin immediate evacuation."
     },
     {
@@ -112,6 +116,8 @@ export const mockFireData = {
       lon: -116.87,
       estimated_time_to_fire_hours: 5.8,
       risk_level: "moderate",
+      needsHelp: false,
+      helpMessage: "",
       alert_message: "Fire projected to reach your area in ~6 hours. Prepare for evacuation."
     }
   ],

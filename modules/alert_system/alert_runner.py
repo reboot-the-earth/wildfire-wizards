@@ -14,7 +14,14 @@ sys.path.insert(0, str(ROOT / "modules"))
 from fire_detection import get_fire_data  # type: ignore
 
 from alert_system.config import BOUNDING_BOX, POLL_INTERVAL_SECONDS
-from alert_system.farm_matcher import get_at_risk_farms, load_registered_farms, mark_alert_sent
+from alert_system.farm_matcher import (
+    build_neighbor_awareness_text,
+    get_at_risk_farms,
+    load_community_farms,
+    load_registered_farms,
+    mark_alert_sent,
+)
+from alert_system.config import NEIGHBOR_RADIUS_KM
 from alert_system.plan_generator import generate_text_plan
 from alert_system.sms_sender import send_alert, send_text_plan
 
@@ -53,19 +60,34 @@ def run_once(send_plans: bool = False) -> dict:
 
     facilities_data = json.loads((ROOT / "data" / "facilities.json").read_text())
     fire_snapshot = json.loads((ROOT / "data" / "fire_data.json").read_text())
+    community = load_community_farms()
+    at_risk_ids = {f["farm_id"] for f in at_risk}
 
     for farm in at_risk:
         hours = float(farm.get("hours_remaining") or 6.0)
-        plan_url = f"https://noherdleft.io/plan/{farm['farm_id']}"
+        plan_url = f"https://wildfirewizards.io/plan/{farm['farm_id']}"
+        neighbor_block = build_neighbor_awareness_text(
+            farm,
+            farms,
+            at_risk_ids,
+            community,
+            radius_km=NEIGHBOR_RADIUS_KM,
+        )
         send_alert(
             farm=farm,
             hours_remaining=hours,
             wind=fire_data.get("wind", {}),
             fire_origin=fire_data.get("origin", {}),
             plan_url=plan_url,
+            neighbor_block=neighbor_block or None,
         )
         if send_plans:
-            segments = generate_text_plan(farm, fire_snapshot, facilities_data)
+            segments = generate_text_plan(
+                farm,
+                fire_snapshot,
+                facilities_data,
+                neighbor_block=neighbor_block or None,
+            )
             send_text_plan(farm, segments)
 
         mark_alert_sent(farm["farm_id"], farm.get("fire_id", fire_data.get("fire_id", "unknown_fire")))
@@ -75,7 +97,7 @@ def run_once(send_plans: bool = False) -> dict:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="NoHerdLeft alert system runner")
+    parser = argparse.ArgumentParser(description="WildfireWizards alert system runner")
     parser.add_argument("--once", action="store_true", help="Run a single alert cycle and exit")
     parser.add_argument("--send-text-plan", action="store_true", help="Also send text-only plan segments")
     args = parser.parse_args()
@@ -88,7 +110,7 @@ def main() -> int:
         print(json.dumps(summary, indent=2))
         return 0
 
-    print("NoHerdLeft alert runner started (10-minute loop). Ctrl+C to stop.")
+    print("WildfireWizards alert runner started (10-minute loop). Ctrl+C to stop.")
     while running:
         summary = run_once(send_plans=args.send_text_plan)
         print(json.dumps(summary))

@@ -3,9 +3,9 @@ import { MapContainer, TileLayer, ZoomControl, useMap } from 'react-leaflet';
 import FireLayers from './FireLayers';
 import FacilityMarkers from './FacilityMarkers';
 import RouteOverlay from './RouteOverlay';
-import WindOverlay from './WindOverlay';
 import FarmMarkers from './FarmMarkers';
 import UserPin from './UserPin';
+import NeighborAwarenessMarkers from './NeighborAwarenessMarkers';
 
 function MapController({ center, zoom }) {
   const map = useMap();
@@ -33,10 +33,12 @@ export default function EvacMap({
   facilities,
   routes,
   farms,
+  fellowFarmers = null,
   showFire = true,
   showFacilities = true,
   showRoutes = false,
   showFarms = true,
+  showNeighborFarms = true,
   activeFarm,
   onFacilityClick,
   onMapClick,
@@ -82,8 +84,8 @@ export default function EvacMap({
         <FarmMarkers farms={farms} activeFarm={activeFarm} />
       )}
 
-      {showFire && fireData?.wind && (
-        <WindOverlay wind={fireData.wind} fireOrigin={[33.24, -117.18]} />
+      {showNeighborFarms && fellowFarmers?.length > 0 && (
+        <NeighborAwarenessMarkers fellowFarmers={fellowFarmers} />
       )}
 
       <UserPin

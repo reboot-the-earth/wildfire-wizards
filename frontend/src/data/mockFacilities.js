@@ -70,20 +70,6 @@ export const mockFacilities = [
     notes: "Full rodeo infrastructure",
   },
   {
-    id: "valley_center_western",
-    name: "Valley Center Western Days",
-    lat: 33.216,
-    lon: -117.033,
-    accepts: ["cattle", "horses", "goats"],
-    capacity_total: 150,
-    capacity_available: 0,
-    infrastructure: ["pens", "water"],
-    access_road: "Valley Center Rd",
-    trailer_access: true,
-    contact: "760-749-8472",
-    notes: "FULL - Currently at capacity",
-  },
-  {
     id: "san_pasqual_academy",
     name: "San Pasqual Valley Farm",
     lat: 33.098,
@@ -114,9 +100,30 @@ export const mockFacilities = [
 ];
 
 export function getFacilityStatus(facility) {
+  if (facility.capacity_available === 0) return { color: '#ef4444', label: 'Full', level: 'full' };
   const pct = facility.capacity_available / facility.capacity_total;
-  if (pct === 0) return { color: '#ef4444', label: 'Full', level: 'full' };
   if (pct <= 0.2) return { color: '#f97316', label: 'Almost Full', level: 'critical' };
   if (pct <= 0.5) return { color: '#eab308', label: 'Filling Up', level: 'filling' };
   return { color: '#22c55e', label: 'Available', level: 'open' };
+}
+
+/**
+ * Fire-proximity risk for a destination.
+ * Based on approximate distance from fire origin at (33.24, -117.18).
+ */
+const FIRE_ORIGIN = { lat: 33.24, lon: -117.18 };
+
+function distKm(lat1, lon1, lat2, lon2) {
+  const r = 6371;
+  const p1 = (lat1 * Math.PI) / 180, p2 = (lat2 * Math.PI) / 180;
+  const dp = ((lat2 - lat1) * Math.PI) / 180, dl = ((lon2 - lon1) * Math.PI) / 180;
+  const a = Math.sin(dp / 2) ** 2 + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) ** 2;
+  return 2 * r * Math.asin(Math.min(1, Math.sqrt(a)));
+}
+
+export function getDestinationRisk(facility) {
+  const d = distKm(facility.lat, facility.lon, FIRE_ORIGIN.lat, FIRE_ORIGIN.lon);
+  if (d < 12) return { risk: 'high', color: '#dc2626', label: 'High Risk Zone', icon: '⚠' };
+  if (d < 25) return { risk: 'moderate', color: '#ea580c', label: 'Moderate Risk', icon: '◉' };
+  return { risk: 'safe', color: '#16a34a', label: 'Safe Zone', icon: '✓' };
 }

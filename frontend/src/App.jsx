@@ -11,8 +11,11 @@ import { mockFireData } from './data/mockFireData';
 import { mockFacilities } from './data/mockFacilities';
 import { mockRoutes } from './data/mockRoutes';
 import { demoFarms, mockEvacuationPlan, DEMO_STEPS } from './data/mockFarmProfiles';
+import { fellowFarmers } from './data/mockNeighborFarms';
 import { fetchFarmerPlan, fetchRoutes } from './utils/api';
 import { reverseGeocode } from './utils/geocode';
+import ChatPanel from './components/chat/ChatPanel';
+import { getFacilityStatus, getDestinationRisk } from './data/mockFacilities';
 
 const DEFAULT_FARM_DATA = {
   name: '',
@@ -36,6 +39,7 @@ export default function App() {
   const [planSource, setPlanSource] = useState(null);
   const [liveRoutes, setLiveRoutes] = useState(null);
   const [pickMode, setPickMode] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
 
   const demo = useDemoMode();
 
@@ -49,7 +53,6 @@ export default function App() {
     return 3.7;
   }, [demo.isDemoMode, demo.step]);
 
-  // Auto-fetch routes whenever the farm location changes (pin, address, ZIP, coords, quick-load).
   const prevLocRef = useRef(null);
   useEffect(() => {
     const loc = farmData.location;
@@ -74,7 +77,6 @@ export default function App() {
     }));
     setPickMode(false);
 
-    // Fetch routes right away so the route line appears with the pin.
     fetchRoutes(lat, lon).then((routes) => {
       const hasGeometry = (routes?.routes_to_facilities || []).some(
         (r) => r.route_geometry?.coordinates?.length
@@ -92,7 +94,7 @@ export default function App() {
         _addressFromPin: true,
       }));
     } catch {
-      // Reverse-geocode failures are non-fatal — the pin coords are enough.
+      // Reverse-geocode failures are non-fatal
     }
   }, []);
 
@@ -113,9 +115,6 @@ export default function App() {
       .replace(/[^a-z0-9]+/g, '_')
       .replace(/^_|_$/g, '');
 
-    // Fire plan + routes in parallel — both depend on the pinned coords.
-    // Routes only run if we actually have a location (the routing engine
-    // needs farm coords; absent those we fall back to the demo route line).
     const planPromise = fetchFarmerPlan({
       farm: {
         id: farmId,
@@ -142,8 +141,6 @@ export default function App() {
       setPlanSource('mock');
     }
 
-    // If the routing module returned at least one route_geometry, use it;
-    // otherwise stick with the mock so the user always sees an example line.
     const hasLiveGeometry = (routes?.routes_to_facilities || []).some(
       (r) => r.route_geometry?.coordinates?.length
     );
@@ -193,14 +190,17 @@ export default function App() {
   const effectiveShowFarms = demo.isDemoMode ? demo.step?.showFarms ?? true : true;
   const effectiveShowFire = demo.isDemoMode ? demo.step?.showFire ?? true : true;
 
-  const noSafeRoutes = showRoutes
-    ? mockRoutes.routes_to_facilities?.filter((r) => r.status === 'no_safe_route') || []
-    : [];
+  const noSafeRoutes = [];
 
   const totalAnimalsAtRisk = useMemo(
     () => (mockFireData.farms_at_risk || [])
       .reduce((acc, f) => acc + (f.animal_count || f.animals_count || 0), 0)
       || 299,
+    []
+  );
+
+  const totalFellowCapacity = useMemo(
+    () => fellowFarmers.reduce((sum, f) => sum + (f.spare_capacity || 0), 0),
     []
   );
 
@@ -230,18 +230,20 @@ export default function App() {
         />
 
         {/* Map */}
-        <div className="flex-1 relative">
+        <div className="flex-1 relative overflow-hidden">
           <EvacMap
             center={mapCenter}
             zoom={mapZoom}
             fireData={effectiveShowFire ? mockFireData : null}
             facilities={mockFacilities}
-            routes={liveRoutes ?? (showRoutes ? mockRoutes : null)}
+            routes={liveRoutes ?? mockRoutes}
             farms={effectiveShowFarms ? mockFireData.farms_at_risk : null}
+            fellowFarmers={fellowFarmers}
             showFire={effectiveShowFire}
             showFacilities={true}
-            showRoutes={showRoutes || !!liveRoutes}
+            showRoutes={true}
             showFarms={effectiveShowFarms}
+            showNeighborFarms={true}
             activeFarm={activeFarm}
             userLocation={farmData.location}
             pickMode={pickMode && !demo.isDemoMode}
@@ -255,7 +257,7 @@ export default function App() {
                 initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
-                className="absolute top-3 left-1/2 -translate-x-1/2 z-30 glass-coal-strong rounded-xl px-4 py-2.5 shadow-coal-lift flex items-center gap-3"
+                className="absolute top-3 left-1/2 -translate-x-1/2 z-[1000] glass-coal-strong rounded-xl px-4 py-2.5 shadow-coal-lift flex items-center gap-3"
               >
                 <span className="relative flex h-2.5 w-2.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-70" />
@@ -276,7 +278,7 @@ export default function App() {
           </AnimatePresence>
 
           {/* Weather strip */}
-          <div className="absolute top-3 left-3 z-20 glass-coal rounded-xl shadow-coal-lift flex items-center gap-3 px-3 py-2">
+          <div className="absolute top-3 left-3 z-[1000] glass-coal rounded-xl shadow-coal-lift flex items-center gap-3 px-3 py-2">
             <div className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
               <span className="text-[11px] font-bold text-red-300 tabular-nums">{mockFireData.weather.temp_f}°F</span>
@@ -296,21 +298,105 @@ export default function App() {
           </div>
 
           {/* Legend */}
-          <div className="absolute bottom-[228px] right-3 z-20 glass-coal rounded-xl px-3 py-2.5 shadow-coal-lift">
-            <div className="text-[9px] text-coal-400 uppercase tracking-widest mb-1.5 font-bold">Spread Forecast</div>
-            <div className="space-y-1">
-              {[
-                { color: '#ef4444', label: 'Active' },
-                { color: '#fb923c', label: '1 hr' },
-                { color: '#facc15', label: '2 hr' },
-                { color: '#eab308', label: '4 hr' },
-                { color: '#a16207', label: '6 hr' },
-              ].map(({ color, label }) => (
-                <div key={label} className="flex items-center gap-2">
-                  <div className="w-4 h-[3px] rounded-full" style={{ backgroundColor: color, boxShadow: `0 0 8px ${color}66` }} />
-                  <span className="text-[10px] text-coal-200">{label}</span>
+          <div className="absolute top-14 right-3 z-[1000] glass-coal rounded-xl px-3 py-2.5 shadow-coal-lift space-y-2 max-h-[calc(100%-80px)] overflow-y-auto">
+
+            {/* Fire spread */}
+            <div>
+              <div className="text-[8px] text-coal-400 uppercase tracking-widest mb-1 font-bold">Fire Spread</div>
+              <div className="space-y-0.5">
+                {[
+                  { color: '#ef4444', label: 'Active' },
+                  { color: '#fb923c', label: '1 hr' },
+                  { color: '#facc15', label: '2 hr' },
+                  { color: '#eab308', label: '4 hr' },
+                  { color: '#a16207', label: '6 hr' },
+                ].map(({ color, label }) => (
+                  <div key={label} className="flex items-center gap-2">
+                    <div className="w-3.5 h-[3px] rounded-full" style={{ backgroundColor: color, boxShadow: `0 0 6px ${color}66` }} />
+                    <span className="text-[9px] text-coal-200">{label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Farms */}
+            <div className="pt-1.5 border-t border-white/10">
+              <div className="text-[8px] text-coal-400 uppercase tracking-widest mb-1 font-bold">Farms</div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <div className="w-4.5 h-4.5 rounded-md border-2 border-white flex-shrink-0 shadow flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #0d9488, #0891b2)', width: '18px', height: '18px' }}>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+                  </div>
+                  <span className="text-[9px] text-coal-200 font-semibold">Your farm (current user)</span>
                 </div>
-              ))}
+                <div className="flex items-center gap-2">
+                  <div className="w-3.5 h-3.5 rounded-sm rotate-45 bg-red-600 border-2 border-white flex-shrink-0 shadow" />
+                  <span className="text-[9px] text-coal-200">Danger farm (at risk)</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Help Status */}
+            <div className="pt-1.5 border-t border-white/10">
+              <div className="text-[8px] text-coal-400 uppercase tracking-widest mb-1 font-bold">Help Status</div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-full flex-shrink-0 shadow flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#dc2626,#b91c1c)', border: '2px solid white' }}>
+                    <span className="text-white text-[7px] font-black">!</span>
+                  </div>
+                  <span className="text-[9px] text-red-300 font-semibold">Needs help (SOS)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-full flex-shrink-0 shadow flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#16a34a,#15803d)', border: '2px solid white' }}>
+                    <span className="text-white text-[7px] font-black">✓</span>
+                  </div>
+                  <span className="text-[9px] text-green-300 font-semibold">Willing to help</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Destinations */}
+            <div className="pt-1.5 border-t border-white/10">
+              <div className="text-[8px] text-coal-400 uppercase tracking-widest mb-1 font-bold">Destinations</div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded bg-green-600 border-2 border-white flex-shrink-0 shadow flex items-center justify-center text-white text-[10px] font-bold leading-none">✓</div>
+                  <span className="text-[9px] text-coal-200">Safe zone — available</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3.5 h-3.5 rounded bg-orange-600 border-2 border-white flex-shrink-0 shadow rotate-45" />
+                  <span className="text-[9px] text-coal-200">Moderate risk zone</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3.5 h-3.5 rounded-full bg-red-600 border-2 border-white flex-shrink-0 shadow flex items-center justify-center text-white text-[8px] font-bold leading-none">⚠</div>
+                  <span className="text-[9px] text-coal-200">High risk zone</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3.5 h-3.5 rounded-full bg-gray-500 border-2 border-white flex-shrink-0 shadow flex items-center justify-center text-white text-[8px] font-bold leading-none">✕</div>
+                  <span className="text-[9px] text-coal-200">Full — no room</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Neighbors */}
+            <div className="pt-1.5 border-t border-white/10">
+              <div className="text-[8px] text-coal-400 uppercase tracking-widest mb-1 font-bold">Nearby Farmers</div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-full bg-blue-600 border-2 border-white flex-shrink-0 shadow relative">
+                    <div className="absolute -top-0.5 -right-0.5 w-[6px] h-[6px] rounded-full bg-green-500 border border-white" />
+                  </div>
+                  <span className="text-[9px] text-coal-200">Registered on app</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-full bg-gray-500 flex-shrink-0 shadow relative" style={{ border: '2px dashed white' }}>
+                    <div className="absolute -top-0.5 -right-0.5 w-[6px] h-[6px] rounded-full bg-red-500 border border-white" />
+                  </div>
+                  <span className="text-[9px] text-coal-200">Not registered — warn them</span>
+                </div>
+              </div>
+              <p className="text-[8px] text-emerald-400 mt-1 font-semibold">{fellowFarmers.length} neighbors · {totalFellowCapacity} spaces</p>
+              <p className="text-[8px] text-red-400 font-semibold">{fellowFarmers.filter(f => f.needsHelp).length} need help · {fellowFarmers.filter(f => f.willingToHelp).length} offering</p>
             </div>
           </div>
 
@@ -321,7 +407,7 @@ export default function App() {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
-                className="absolute top-16 left-1/2 -translate-x-1/2 z-20 glass-warm rounded-xl px-4 py-2.5 shadow-ember-glow max-w-sm w-[90%]"
+                className="absolute top-16 left-1/2 -translate-x-1/2 z-[1000] glass-warm rounded-xl px-4 py-2.5 shadow-ember-glow max-w-sm w-[90%]"
               >
                 {noSafeRoutes.map((r) => (
                   <div key={r.facility_id} className="flex items-center gap-2.5">
@@ -342,7 +428,7 @@ export default function App() {
           {!demo.isDemoMode && (
             <button
               onClick={handleStartDemo}
-              className="absolute bottom-4 left-4 z-20 glass-coal rounded-xl px-4 py-2.5 text-[11px] text-coal-200 hover:text-white transition-colors shadow-coal-lift flex items-center gap-2 font-medium hover:border-ember-400/40 group"
+              className="absolute bottom-4 left-4 z-[1000] glass-coal rounded-xl px-4 py-2.5 text-[11px] text-coal-200 hover:text-white transition-colors shadow-coal-lift flex items-center gap-2 font-medium hover:border-ember-400/40 group"
             >
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-ember-400 opacity-60" />
@@ -354,6 +440,44 @@ export default function App() {
 
           {/* Project info / Open Data / Submission link */}
           {!demo.isDemoMode && <ProjectFooter />}
+
+          {/* Chat toggle button */}
+          <button
+            onClick={() => setChatOpen(!chatOpen)}
+            className="absolute bottom-4 right-4 z-[1001] w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-110"
+            style={{ background: 'linear-gradient(135deg, #f97316, #dc2626)' }}
+          >
+            {chatOpen ? (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
+                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+              </svg>
+            )}
+          </button>
+
+          {/* Chat panel */}
+          <AnimatePresence>
+            {chatOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 20, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+                className="absolute bottom-20 right-4 z-[1001] w-[370px] h-[520px] glass-coal-strong rounded-2xl shadow-2xl overflow-hidden border border-white/10 flex flex-col"
+              >
+                <ChatPanel
+                  fireData={mockFireData}
+                  facilities={mockFacilities}
+                  fellowFarmers={fellowFarmers}
+                  getFacilityStatus={getFacilityStatus}
+                  getDestinationRisk={getDestinationRisk}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Right Sidebar */}

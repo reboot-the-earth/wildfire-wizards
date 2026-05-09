@@ -1,1 +1,1 @@
-"""NoHerdLeft backend modules package."""
+"""WildfireWizards backend modules package."""

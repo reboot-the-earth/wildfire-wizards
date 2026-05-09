@@ -1,1 +1,1 @@
-"""NoHerdLeft alert system package."""
+"""WildfireWizards alert system package."""

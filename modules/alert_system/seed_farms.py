@@ -155,7 +155,7 @@ def list_farms(db_path: Path | None = None) -> list[dict]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Seed/reset NoHerdLeft alert farm registry")
+    parser = argparse.ArgumentParser(description="Seed/reset WildfireWizards alert farm registry")
     parser.add_argument("--reset", action="store_true", help="Delete farms.db before seeding")
     parser.add_argument("--list", action="store_true", help="Print existing farms and exit")
     args = parser.parse_args()

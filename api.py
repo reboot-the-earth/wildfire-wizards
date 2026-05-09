@@ -1,5 +1,5 @@
 """
-NoHerdLeft API Server — Person 5 integration layer.
+WildfireWizards API Server — Person 5 integration layer.
 
 Wraps Person 1 (fire), Person 2 (routing), and Person 3 (facilities)
 into a simple Flask API consumed by the React frontend.
@@ -270,6 +270,6 @@ def health():
 
 
 if __name__ == "__main__":
-    print("\n  NoHerdLeft API Server")
+    print("\n  WildfireWizards API Server")
     print("  http://localhost:5001/api/health\n")
     app.run(host="0.0.0.0", port=5001, debug=True)
