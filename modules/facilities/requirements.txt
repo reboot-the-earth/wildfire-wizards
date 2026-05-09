@@ -1,0 +1,4 @@
+# Person 3: Facility Matcher — dependencies
+# All stdlib-based; no heavy third-party packages required.
+# shapely is optional — used for more precise polygon containment if available.
+shapely>=2.0
