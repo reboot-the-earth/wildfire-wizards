@@ -141,6 +141,42 @@ export async function resolveAddress(address, opts) {
 }
 
 /**
+ * Reverse geocode a (lat, lon) into a human-readable address via Nominatim.
+ * Used after the user drops a pin on the map so the address field can be
+ * populated with something other than raw decimals. Returns null on failure
+ * so the caller can gracefully fall back to coords-only display.
+ */
+export async function reverseGeocode(lat, lon, { signal } = {}) {
+  if (lat == null || lon == null) return null;
+  const url = new URL('https://nominatim.openstreetmap.org/reverse');
+  url.searchParams.set('lat', String(lat));
+  url.searchParams.set('lon', String(lon));
+  url.searchParams.set('format', 'json');
+  url.searchParams.set('zoom', '14');           // street/town granularity
+  url.searchParams.set('addressdetails', '1');
+
+  try {
+    const res = await fetch(url.toString(), {
+      headers: { Accept: 'application/json' },
+      signal,
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const addr = data.address || {};
+    const zip = addr.postcode || null;
+    return {
+      lat: parseFloat(data.lat ?? lat),
+      lon: parseFloat(data.lon ?? lon),
+      place: data.display_name || `${lat.toFixed(4)}, ${lon.toFixed(4)}`,
+      zip,
+      source: 'nominatim-reverse',
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Parse `lat, lon` text input. Accepts a few common formats:
  *   "33.22, -117.03", "33.22 -117.03", "33.22N 117.03W"
  * Returns null if not parseable.

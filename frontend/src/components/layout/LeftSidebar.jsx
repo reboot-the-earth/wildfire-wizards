@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import FarmInput from '../farm/FarmInput';
 import { demoFarms } from '../../data/mockFarmProfiles';
 
-export default function LeftSidebar({ isOpen, onToggle, onGeneratePlan, farmData, setFarmData, isGenerating }) {
+export default function LeftSidebar({ isOpen, onToggle, onGeneratePlan, farmData, setFarmData, isGenerating, pickMode, onTogglePickMode }) {
   const loadDemoFarm = (farm) => {
     setFarmData({
       name: farm.name,
@@ -126,7 +126,12 @@ export default function LeftSidebar({ isOpen, onToggle, onGeneratePlan, farmData
 
             {/* Farm input form (light surface inside dark shell) */}
             <div className="flex-1 overflow-y-auto scroll-light bg-white/[0.97] text-slate-700">
-              <FarmInput farmData={farmData} setFarmData={setFarmData} />
+              <FarmInput
+                farmData={farmData}
+                setFarmData={setFarmData}
+                pickMode={pickMode}
+                onTogglePickMode={onTogglePickMode}
+              />
             </div>
 
             {/* Generate button */}

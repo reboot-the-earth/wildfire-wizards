@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import CountdownBanner from './components/layout/CountdownBanner';
 import LeftSidebar from './components/layout/LeftSidebar';
@@ -11,7 +11,8 @@ import { mockFireData } from './data/mockFireData';
 import { mockFacilities } from './data/mockFacilities';
 import { mockRoutes } from './data/mockRoutes';
 import { demoFarms, mockEvacuationPlan, DEMO_STEPS } from './data/mockFarmProfiles';
-import { fetchFarmerPlan } from './utils/api';
+import { fetchFarmerPlan, fetchRoutes } from './utils/api';
+import { reverseGeocode } from './utils/geocode';
 
 const DEFAULT_FARM_DATA = {
   name: '',
@@ -33,6 +34,8 @@ export default function App() {
   const [showRoutes, setShowRoutes] = useState(false);
   const [livePlan, setLivePlan] = useState(null);
   const [planSource, setPlanSource] = useState(null);
+  const [liveRoutes, setLiveRoutes] = useState(null);
+  const [pickMode, setPickMode] = useState(false);
 
   const demo = useDemoMode();
 
@@ -45,6 +48,53 @@ export default function App() {
     }
     return 3.7;
   }, [demo.isDemoMode, demo.step]);
+
+  // Auto-fetch routes whenever the farm location changes (pin, address, ZIP, coords, quick-load).
+  const prevLocRef = useRef(null);
+  useEffect(() => {
+    const loc = farmData.location;
+    if (!loc) return;
+    const key = `${loc.lat.toFixed(5)},${loc.lon.toFixed(5)}`;
+    if (prevLocRef.current === key) return;
+    prevLocRef.current = key;
+
+    fetchRoutes(loc.lat, loc.lon).then((routes) => {
+      const hasGeometry = (routes?.routes_to_facilities || []).some(
+        (r) => r.route_geometry?.coordinates?.length
+      );
+      setLiveRoutes(hasGeometry ? routes : null);
+      setShowRoutes(true);
+    }).catch(() => {});
+  }, [farmData.location]);
+
+  const handlePickLocation = useCallback(async (lat, lon) => {
+    setFarmData((prev) => ({
+      ...prev,
+      location: { lat, lon },
+    }));
+    setPickMode(false);
+
+    // Fetch routes right away so the route line appears with the pin.
+    fetchRoutes(lat, lon).then((routes) => {
+      const hasGeometry = (routes?.routes_to_facilities || []).some(
+        (r) => r.route_geometry?.coordinates?.length
+      );
+      if (hasGeometry) setLiveRoutes(routes);
+    }).catch(() => {});
+
+    try {
+      const resolved = await reverseGeocode(lat, lon);
+      if (!resolved) return;
+      setFarmData((prev) => ({
+        ...prev,
+        address: resolved.place,
+        zip: resolved.zip ?? prev.zip,
+        _addressFromPin: true,
+      }));
+    } catch {
+      // Reverse-geocode failures are non-fatal — the pin coords are enough.
+    }
+  }, []);
 
   const handleGeneratePlan = useCallback(async () => {
     setIsGenerating(true);
@@ -63,7 +113,10 @@ export default function App() {
       .replace(/[^a-z0-9]+/g, '_')
       .replace(/^_|_$/g, '');
 
-    const plan = await fetchFarmerPlan({
+    // Fire plan + routes in parallel — both depend on the pinned coords.
+    // Routes only run if we actually have a location (the routing engine
+    // needs farm coords; absent those we fall back to the demo route line).
+    const planPromise = fetchFarmerPlan({
       farm: {
         id: farmId,
         name: farmData.name || 'Your Farm',
@@ -75,6 +128,12 @@ export default function App() {
       timeAvailableHours,
     });
 
+    const routesPromise = farmData.location
+      ? fetchRoutes(farmData.location.lat, farmData.location.lon)
+      : Promise.resolve(null);
+
+    const [plan, routes] = await Promise.all([planPromise, routesPromise]);
+
     if (plan) {
       setLivePlan(plan);
       setPlanSource('live');
@@ -82,6 +141,13 @@ export default function App() {
       setLivePlan(null);
       setPlanSource('mock');
     }
+
+    // If the routing module returned at least one route_geometry, use it;
+    // otherwise stick with the mock so the user always sees an example line.
+    const hasLiveGeometry = (routes?.routes_to_facilities || []).some(
+      (r) => r.route_geometry?.coordinates?.length
+    );
+    setLiveRoutes(hasLiveGeometry ? routes : null);
 
     setIsGenerating(false);
     setHasPlan(true);
@@ -159,6 +225,8 @@ export default function App() {
           farmData={farmData}
           setFarmData={setFarmData}
           isGenerating={isGenerating}
+          pickMode={pickMode}
+          onTogglePickMode={() => setPickMode((v) => !v)}
         />
 
         {/* Map */}
@@ -168,14 +236,44 @@ export default function App() {
             zoom={mapZoom}
             fireData={effectiveShowFire ? mockFireData : null}
             facilities={mockFacilities}
-            routes={showRoutes ? mockRoutes : null}
+            routes={liveRoutes ?? (showRoutes ? mockRoutes : null)}
             farms={effectiveShowFarms ? mockFireData.farms_at_risk : null}
             showFire={effectiveShowFire}
             showFacilities={true}
-            showRoutes={showRoutes}
+            showRoutes={showRoutes || !!liveRoutes}
             showFarms={effectiveShowFarms}
             activeFarm={activeFarm}
+            userLocation={farmData.location}
+            pickMode={pickMode && !demo.isDemoMode}
+            onPickLocation={handlePickLocation}
           />
+
+          {/* Pick-mode banner */}
+          <AnimatePresence>
+            {pickMode && !demo.isDemoMode && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                className="absolute top-3 left-1/2 -translate-x-1/2 z-30 glass-coal-strong rounded-xl px-4 py-2.5 shadow-coal-lift flex items-center gap-3"
+              >
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-70" />
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-sky-400" />
+                </span>
+                <div className="text-[11px] text-coal-100 leading-tight">
+                  <div className="font-bold uppercase tracking-widest text-[10px] text-sky-300">Drop a pin</div>
+                  <div className="text-coal-300">Click anywhere on the map to set your farm location.</div>
+                </div>
+                <button
+                  onClick={() => setPickMode(false)}
+                  className="ml-2 text-[10px] uppercase tracking-widest font-bold text-coal-300 hover:text-white px-2 py-1 rounded-md border border-white/10 hover:border-white/30 transition-colors"
+                >
+                  Cancel
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Weather strip */}
           <div className="absolute top-3 left-3 z-20 glass-coal rounded-xl shadow-coal-lift flex items-center gap-3 px-3 py-2">
