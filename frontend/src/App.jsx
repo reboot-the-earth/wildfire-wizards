@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import CountdownBanner from './components/layout/CountdownBanner';
 import LeftSidebar from './components/layout/LeftSidebar';
 import RightSidebar from './components/layout/RightSidebar';
+import ProjectFooter from './components/layout/ProjectFooter';
 import EvacMap from './components/map/EvacMap';
 import DemoController from './components/demo/DemoController';
 import { useDemoMode } from './hooks/useDemoMode';
@@ -130,17 +131,27 @@ export default function App() {
     ? mockRoutes.routes_to_facilities?.filter((r) => r.status === 'no_safe_route') || []
     : [];
 
+  const totalAnimalsAtRisk = useMemo(
+    () => (mockFireData.farms_at_risk || [])
+      .reduce((acc, f) => acc + (f.animal_count || f.animals_count || 0), 0)
+      || 299,
+    []
+  );
+
   return (
-    <div className="h-screen w-screen flex flex-col overflow-hidden bg-void">
-      {/* Countdown Banner */}
+    <div className="h-screen w-screen flex flex-col overflow-hidden ember-bg text-coal-100">
       <CountdownBanner
         hoursRemaining={currentCountdownHours}
         farmName={activeFarm ? demoFarms.find((f) => f.id === activeFarm)?.name : null}
+        fireName="Lilac Fire — Bonsall"
+        farmsAtRisk={(mockFireData.farms_at_risk || []).length || 3}
+        animalsAtRisk={totalAnimalsAtRisk}
+        windMph={mockFireData.wind?.speed_mph || 35}
+        planSource={hasPlan ? planSource : null}
       />
 
       {/* Main content area */}
       <div className="flex-1 flex overflow-hidden relative">
-        {/* Left Sidebar */}
         <LeftSidebar
           isOpen={leftOpen && !demo.isDemoMode}
           onToggle={() => setLeftOpen(!leftOpen)}
@@ -167,49 +178,39 @@ export default function App() {
           />
 
           {/* Weather strip */}
-          <div className="
-            absolute top-3 left-3 z-20
-            bg-white/90 backdrop-blur-sm
-            border border-slate-200
-            rounded-xl shadow-md
-            flex items-center gap-3 px-3 py-2
-          ">
+          <div className="absolute top-3 left-3 z-20 glass-coal rounded-xl shadow-coal-lift flex items-center gap-3 px-3 py-2">
             <div className="flex items-center gap-1.5">
-              <div className="w-2 h-2 rounded-full bg-red-500" />
-              <span className="text-[11px] font-bold text-red-600">{mockFireData.weather.temp_f}°F</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
+              <span className="text-[11px] font-bold text-red-300 tabular-nums">{mockFireData.weather.temp_f}°F</span>
             </div>
-            <div className="w-px h-3.5 bg-slate-200" />
-            <span className="text-[11px] text-slate-500">
-              <span className="text-blue-600 font-semibold">{mockFireData.weather.humidity_pct}%</span> hum
+            <div className="w-px h-3.5 bg-white/10" />
+            <span className="text-[11px] text-coal-300">
+              <span className="text-sky-300 font-semibold tabular-nums">{mockFireData.weather.humidity_pct}%</span> hum
             </span>
-            <div className="w-px h-3.5 bg-slate-200" />
-            <span className="text-[11px] text-slate-500">
-              Wind <span className="text-blue-600 font-semibold">{mockFireData.wind.speed_mph}</span>mph
+            <div className="w-px h-3.5 bg-white/10" />
+            <span className="text-[11px] text-coal-300">
+              Wind <span className="text-sky-300 font-semibold tabular-nums">{mockFireData.wind.speed_mph}</span>
+              <span className="text-coal-400">mph</span>
               {mockFireData.wind.gusts_mph > mockFireData.wind.speed_mph && (
-                <span className="text-slate-400"> g{mockFireData.wind.gusts_mph}</span>
+                <span className="text-coal-400"> · g{mockFireData.wind.gusts_mph}</span>
               )}
             </span>
           </div>
 
           {/* Legend */}
-          <div className="
-            absolute bottom-14 right-3 z-20
-            bg-white/90 backdrop-blur-sm
-            border border-slate-200
-            rounded-xl px-3 py-2.5 shadow-md
-          ">
-            <div className="text-[9px] text-slate-400 uppercase tracking-widest mb-1.5 font-bold">Projections</div>
+          <div className="absolute bottom-[228px] right-3 z-20 glass-coal rounded-xl px-3 py-2.5 shadow-coal-lift">
+            <div className="text-[9px] text-coal-400 uppercase tracking-widest mb-1.5 font-bold">Spread Forecast</div>
             <div className="space-y-1">
               {[
-                { color: '#dc2626', label: 'Active' },
-                { color: '#ea580c', label: '1 hr' },
-                { color: '#f59e0b', label: '2 hr' },
-                { color: '#ca8a04', label: '4 hr' },
+                { color: '#ef4444', label: 'Active' },
+                { color: '#fb923c', label: '1 hr' },
+                { color: '#facc15', label: '2 hr' },
+                { color: '#eab308', label: '4 hr' },
                 { color: '#a16207', label: '6 hr' },
               ].map(({ color, label }) => (
                 <div key={label} className="flex items-center gap-2">
-                  <div className="w-4 h-[3px] rounded-full" style={{ backgroundColor: color }} />
-                  <span className="text-[10px] text-slate-500">{label}</span>
+                  <div className="w-4 h-[3px] rounded-full" style={{ backgroundColor: color, boxShadow: `0 0 8px ${color}66` }} />
+                  <span className="text-[10px] text-coal-200">{label}</span>
                 </div>
               ))}
             </div>
@@ -222,21 +223,16 @@ export default function App() {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
-                className="
-                  absolute top-16 left-1/2 -translate-x-1/2 z-20
-                  bg-red-50 border border-red-200
-                  rounded-xl px-4 py-2.5 shadow-md
-                  max-w-sm w-[90%]
-                "
+                className="absolute top-16 left-1/2 -translate-x-1/2 z-20 glass-warm rounded-xl px-4 py-2.5 shadow-ember-glow max-w-sm w-[90%]"
               >
                 {noSafeRoutes.map((r) => (
                   <div key={r.facility_id} className="flex items-center gap-2.5">
-                    <svg className="w-4 h-4 text-red-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-4 h-4 text-red-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                     </svg>
                     <div>
-                      <div className="text-xs font-bold text-red-700">No Safe Route</div>
-                      <div className="text-[11px] text-red-500">{r.facility_name}: {r.reason}</div>
+                      <div className="text-xs font-bold text-red-200">No Safe Route</div>
+                      <div className="text-[11px] text-red-300/90">{r.facility_name}: {r.reason}</div>
                     </div>
                   </div>
                 ))}
@@ -248,22 +244,18 @@ export default function App() {
           {!demo.isDemoMode && (
             <button
               onClick={handleStartDemo}
-              className="
-                absolute bottom-4 left-4 z-20
-                bg-white/90 backdrop-blur-sm
-                border border-slate-200
-                rounded-xl px-4 py-2.5
-                text-[11px] text-slate-500 hover:text-slate-700
-                transition-colors shadow-md
-                flex items-center gap-2 font-medium
-              "
+              className="absolute bottom-4 left-4 z-20 glass-coal rounded-xl px-4 py-2.5 text-[11px] text-coal-200 hover:text-white transition-colors shadow-coal-lift flex items-center gap-2 font-medium hover:border-ember-400/40 group"
             >
-              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-              </svg>
-              Demo Mode
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-ember-400 opacity-60" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-ember-500" />
+              </span>
+              <span className="uppercase tracking-widest text-[10px] font-bold">Run Demo Walkthrough</span>
             </button>
           )}
+
+          {/* Project info / Open Data / Submission link */}
+          {!demo.isDemoMode && <ProjectFooter />}
         </div>
 
         {/* Right Sidebar */}
