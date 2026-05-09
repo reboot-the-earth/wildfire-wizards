@@ -31,6 +31,12 @@ try:
 except ImportError:
     from facility_matcher import get_evacuation_match, load_facilities as load_p3_facilities
 
+try:
+    from farmer_input.priority_engine import get_evacuation_plan as p4_get_evacuation_plan
+except ImportError:
+    sys.path.insert(0, os.path.join(MODULES, "farmer_input"))
+    from priority_engine import get_evacuation_plan as p4_get_evacuation_plan
+
 app = Flask(__name__)
 CORS(app, origins=["http://localhost:3000", "http://localhost:3001", "http://localhost:5173", "http://127.0.0.1:3000"])
 
@@ -194,6 +200,63 @@ def plan_endpoint():
         return jsonify({"error": str(e)}), 200
 
 
+@app.route("/api/farmer-profiles", methods=["GET"])
+def farmer_profiles_endpoint():
+    """Return Person 4's pre-loaded demo farm profiles."""
+    profiles_path = os.path.join(MODULES, "farmer_input", "demo_profiles.json")
+    try:
+        with open(profiles_path) as f:
+            return jsonify({"profiles": json.load(f)})
+    except FileNotFoundError:
+        return jsonify({"profiles": [], "error": "demo_profiles.json missing"}), 200
+
+
+@app.route("/api/farmer-plan", methods=["POST"])
+def farmer_plan_endpoint():
+    """
+    Generate Person 4's evacuation plan + species-specific checklist.
+
+    POST body: {
+        "farm": {"id": "...", "name": "...", "lat": ..., "lon": ...,
+                 "smoke_within_5_miles": false},
+        "animals": [{"species": "cattle", "count": 150,
+                     "special_needs": ["12 calves with mothers"]}, ...],
+        "transport": {"trailers": 1, "type": "stock_trailer",
+                      "capacity": {"cattle": 20, "horses": 4}},
+        "time_available_hours": 3.7
+    }
+    """
+    body = request.get_json(force=True) or {}
+    farm = body.get("farm") or {}
+    animals = body.get("animals") or []
+    transport = body.get("transport") or {"trailers": 1, "type": "stock_trailer"}
+    time_hours = body.get("time_available_hours")
+
+    if time_hours is None:
+        farm_id = farm.get("id")
+        try:
+            fire_data = _load_fire_data_file()
+            for f in fire_data.get("farms_at_risk", []):
+                if f.get("farm_id") == farm_id or f.get("name") == farm.get("name"):
+                    time_hours = f.get("estimated_time_to_fire_hours") or f.get("hours_to_fire")
+                    break
+        except Exception:
+            pass
+        if time_hours is None:
+            time_hours = 3.7
+
+    try:
+        plan = p4_get_evacuation_plan(
+            farm=farm,
+            animal_inventory=animals,
+            transport=transport,
+            time_available_hours=float(time_hours),
+        )
+        return jsonify(plan)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 200
+
+
 @app.route("/api/health", methods=["GET"])
 def health():
     """Health check showing which modules loaded."""
@@ -201,6 +264,7 @@ def health():
         "fire_detection": "get_fire_data" in dir(sys.modules.get("fire_detection", {})),
         "routing": "find_safe_routes" in dir(sys.modules.get("routing", {})),
         "facilities": True,
+        "farmer_input": "p4_get_evacuation_plan" in globals(),
     }
     return jsonify({"status": "ok", "modules": modules})
 

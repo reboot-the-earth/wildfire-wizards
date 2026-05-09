@@ -10,7 +10,10 @@ from __future__ import annotations
 from math import ceil
 from typing import Any
 
-from checklist_generator import generate_checklist
+try:
+    from .checklist_generator import generate_checklist
+except ImportError:
+    from checklist_generator import generate_checklist
 
 
 PRIORITY_RULES = {

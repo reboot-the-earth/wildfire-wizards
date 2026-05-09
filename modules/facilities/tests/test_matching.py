@@ -18,6 +18,8 @@ import os
 import json
 import time
 
+import pytest
+
 # Run tests from the modules/facilities/ directory so imports resolve correctly
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
@@ -86,10 +88,12 @@ FIRE_DANGER_ZONE = {
 
 
 # ---------------------------------------------------------------------------
-# Test 1: Farm 1 — Valley Center Ranch
+# Shared scenario runners. Used by both the pytest fixtures below and the
+# __main__ entry point so the file works as `pytest` AND `python ...`.
 # ---------------------------------------------------------------------------
 
-def test_farm1_valley_center_ranch():
+
+def _run_farm1() -> dict:
     _print_section("Farm 1: Valley Center Ranch — 150 cattle, 8 horses")
     _reset_reservations()
 
@@ -107,42 +111,11 @@ def test_farm1_valley_center_ranch():
     )
 
     _print_result(result)
-
-    matched = result["matched_facilities"]
-    assert len(matched) > 0, "Should find at least one facility"
-
-    # Top facility must be a full match (accepts both cattle and horses)
-    top = matched[0]
-    assert top["match_type"] == "full_match", (
-        f"Top match should be full_match, got {top['match_type']}"
-    )
-    assert "cattle" in top["can_accept"], "Top facility must accept cattle"
-    assert "horses" in top["can_accept"], "Top facility must accept horses"
-
-    # Reservations should have been created
-    reservations = result["reservations_made"]
-    assert len(reservations) > 0, "Reservations should be made for Farm 1"
-
-    # Bonsall Community Grounds should be excluded (inside fire zone)
-    facility_ids = {m["facility_id"] for m in matched}
-    assert "bonsall_community_grounds" not in facility_ids, (
-        "Bonsall Community Grounds should be excluded (inside fire zone)"
-    )
-
-    print("\n  PASS: Farm 1 test passed.")
     return result
 
 
-# ---------------------------------------------------------------------------
-# Test 2: Farm 2 — Fallbrook Stables (after Farm 1 has reserved)
-# ---------------------------------------------------------------------------
-
-def test_farm2_fallbrook_stables(farm1_result: dict):
+def _run_farm2() -> dict:
     _print_section("Farm 2: Fallbrook Stables — 24 horses")
-
-    # Farm 1's reservations are still active — do NOT reset
-    top_farm1_id = farm1_result["top_recommendation"]
-
     result = get_evacuation_match(
         farm_id="fallbrook_stables",
         animal_inventory=[
@@ -154,8 +127,72 @@ def test_farm2_fallbrook_stables(farm1_result: dict):
         fire_arrival_hours=2.1,
         make_reservations=True,
     )
-
     _print_result(result)
+    return result
+
+
+def _run_farm3() -> dict:
+    _print_section("Farm 3: Bonsall Goat Co — 85 goats, 20 sheep")
+    result = get_evacuation_match(
+        farm_id="bonsall_goat_co",
+        animal_inventory=[
+            {"species": "goats", "count": 85},
+            {"species": "sheep", "count": 20},
+        ],
+        trailer_capacity={"goats": 20, "sheep": 20},
+        fire_danger_zone=FIRE_DANGER_ZONE,
+        route_time_minutes=42,
+        fire_arrival_hours=2.8,
+        make_reservations=True,
+    )
+    _print_result(result)
+    return result
+
+
+# Module-scoped so test_farm2 sees the reservations made by farm1_result.
+@pytest.fixture(scope="module")
+def farm1_result() -> dict:
+    return _run_farm1()
+
+
+# ---------------------------------------------------------------------------
+# Test 1: Farm 1 — Valley Center Ranch
+# ---------------------------------------------------------------------------
+
+def test_farm1_valley_center_ranch(farm1_result: dict):
+    matched = farm1_result["matched_facilities"]
+    assert len(matched) > 0, "Should find at least one facility"
+
+    # Top facility must be a full match (accepts both cattle and horses)
+    top = matched[0]
+    assert top["match_type"] == "full_match", (
+        f"Top match should be full_match, got {top['match_type']}"
+    )
+    assert "cattle" in top["can_accept"], "Top facility must accept cattle"
+    assert "horses" in top["can_accept"], "Top facility must accept horses"
+
+    # Reservations should have been created
+    reservations = farm1_result["reservations_made"]
+    assert len(reservations) > 0, "Reservations should be made for Farm 1"
+
+    # Bonsall Community Grounds should be excluded (inside fire zone)
+    facility_ids = {m["facility_id"] for m in matched}
+    assert "bonsall_community_grounds" not in facility_ids, (
+        "Bonsall Community Grounds should be excluded (inside fire zone)"
+    )
+
+    print("\n  PASS: Farm 1 test passed.")
+
+
+# ---------------------------------------------------------------------------
+# Test 2: Farm 2 — Fallbrook Stables (after Farm 1 has reserved)
+# ---------------------------------------------------------------------------
+
+def test_farm2_fallbrook_stables(farm1_result: dict):
+    # Farm 1's reservations are still active — do NOT reset
+    top_farm1_id = farm1_result["top_recommendation"]
+
+    result = _run_farm2()
 
     matched = result["matched_facilities"]
     assert len(matched) > 0, "Farm 2 should find at least one facility"
@@ -182,7 +219,6 @@ def test_farm2_fallbrook_stables(farm1_result: dict):
     print(f"  Farm 2 routed to: {top['name']} (match_type={top['match_type']})")
 
     print("\n  PASS: Farm 2 test passed.")
-    return result
 
 
 # ---------------------------------------------------------------------------
@@ -190,23 +226,7 @@ def test_farm2_fallbrook_stables(farm1_result: dict):
 # ---------------------------------------------------------------------------
 
 def test_farm3_bonsall_goat_co():
-    _print_section("Farm 3: Bonsall Goat Co — 85 goats, 20 sheep")
-
-    result = get_evacuation_match(
-        farm_id="bonsall_goat_co",
-        animal_inventory=[
-            {"species": "goats", "count": 85},
-            {"species": "sheep", "count": 20},
-        ],
-        trailer_capacity={"goats": 20, "sheep": 20},
-        fire_danger_zone=FIRE_DANGER_ZONE,
-        route_time_minutes=42,
-        fire_arrival_hours=2.8,
-        make_reservations=True,
-    )
-
-    _print_result(result)
-
+    result = _run_farm3()
     matched = result["matched_facilities"]
     assert len(matched) > 0, "Farm 3 should find at least one facility"
 
@@ -214,7 +234,6 @@ def test_farm3_bonsall_goat_co():
     assert "goats" in top["can_accept"], "Top facility must accept goats"
 
     print("\n  PASS: Farm 3 test passed.")
-    return result
 
 
 # ---------------------------------------------------------------------------
@@ -328,9 +347,10 @@ if __name__ == "__main__":
     test_fire_zone_exclusion()
     test_trip_calculator()
 
-    farm1_result = test_farm1_valley_center_ranch()
-    farm2_result = test_farm2_fallbrook_stables(farm1_result)
-    farm3_result = test_farm3_bonsall_goat_co()
+    farm1 = _run_farm1()
+    test_farm1_valley_center_ranch(farm1)
+    test_farm2_fallbrook_stables(farm1)
+    test_farm3_bonsall_goat_co()
 
     _print_section("ALL TESTS PASSED")
     print()
