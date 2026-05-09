@@ -1,0 +1,90 @@
+[
+  {
+    "id": "valley_center_ranch",
+    "name": "Valley Center Ranch",
+    "location": {
+      "lat": 33.22,
+      "lon": -117.03,
+      "address": "28500 Valley Center Rd, Valley Center, CA"
+    },
+    "animals": [
+      {
+        "species": "cattle",
+        "count": 150,
+        "special_needs": ["12 calves with mothers", "2 bulls separate"]
+      },
+      {
+        "species": "horses",
+        "count": 8,
+        "special_needs": ["2 pregnant mares", "1 foal"]
+      }
+    ],
+    "transport": {
+      "trailers": 1,
+      "type": "stock_trailer",
+      "capacity": {
+        "cattle": 20,
+        "cattle_calves": 10,
+        "horses": 4
+      }
+    },
+    "time_available_hours": 3.7,
+    "scenario": "Large mixed operation with limited transport. Must prioritize."
+  },
+  {
+    "id": "fallbrook_equestrian_center",
+    "name": "Fallbrook Equestrian Center",
+    "location": {
+      "lat": 33.37,
+      "lon": -117.25,
+      "address": "1200 S Mission Rd, Fallbrook, CA"
+    },
+    "animals": [
+      {
+        "species": "horses",
+        "count": 24,
+        "special_needs": ["3 senior horses", "2 miniatures"]
+      }
+    ],
+    "transport": {
+      "trailers": 2,
+      "type": "horse_trailer",
+      "capacity": {
+        "horses": 4
+      }
+    },
+    "time_available_hours": 4.2,
+    "scenario": "Horse-only site with multiple trailers and several special-handling animals."
+  },
+  {
+    "id": "ramona_heritage_goat_farm",
+    "name": "Ramona Heritage Goat Farm",
+    "location": {
+      "lat": 33.05,
+      "lon": -116.87,
+      "address": "16800 Mussey Grade Rd, Ramona, CA"
+    },
+    "animals": [
+      {
+        "species": "goats",
+        "count": 85,
+        "special_needs": ["15 does with kids"]
+      },
+      {
+        "species": "poultry",
+        "count": 200,
+        "special_needs": ["free-range flock"]
+      }
+    ],
+    "transport": {
+      "trailers": 1,
+      "type": "livestock_trailer",
+      "capacity": {
+        "goats": 30,
+        "poultry": 100
+      }
+    },
+    "time_available_hours": 2.5,
+    "scenario": "Small diversified farm. Goats are manageable; poultry may require shelter-in-place."
+  }
+]

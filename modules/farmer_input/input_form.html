@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NoHerdLeft Farmer Plan</title>
+  <link rel="stylesheet" href="input_form.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">NoHerdLeft</p>
+        <h1>Evacuation plan</h1>
+      </div>
+      <div class="countdown" id="countdown">3.7h</div>
+    </header>
+
+    <nav class="steps" aria-label="Form steps">
+      <button class="step active" data-screen="map">1</button>
+      <button class="step" data-screen="animals">2</button>
+      <button class="step" data-screen="transport">3</button>
+      <button class="step" data-screen="plan">4</button>
+    </nav>
+
+    <section class="screen active" id="screen-map">
+      <div class="section-head">
+        <h2>Farm location</h2>
+        <select id="demo-profile" aria-label="Load demo farm profile">
+          <option value="">Load demo profile</option>
+        </select>
+      </div>
+
+      <label class="field">
+        <span>Farm name</span>
+        <input id="farm-name" type="text" value="Valley Center Ranch">
+      </label>
+
+      <label class="field">
+        <span>Address</span>
+        <div class="row">
+          <input id="farm-address" type="text" value="28500 Valley Center Rd, Valley Center, CA">
+          <button id="geocode-btn" type="button">Find</button>
+        </div>
+      </label>
+
+      <div class="pin-panel" id="pin-panel">
+        <button class="map-pin" type="button" aria-label="Drop farm pin"></button>
+        <p id="location-readout">33.2200, -117.0300</p>
+      </div>
+
+      <div class="actions">
+        <button class="primary" data-next="animals" type="button">Next: animals</button>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-animals">
+      <div class="section-head">
+        <h2>Animals</h2>
+        <button id="add-animal" type="button">Add</button>
+      </div>
+      <div id="animal-list" class="stack"></div>
+      <div class="actions">
+        <button data-prev="map" type="button">Back</button>
+        <button class="primary" data-next="transport" type="button">Next: transport</button>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-transport">
+      <h2>Transport</h2>
+      <div class="segmented" id="trailer-count">
+        <button class="active" data-count="1" type="button">1</button>
+        <button data-count="2" type="button">2</button>
+        <button data-count="3" type="button">3+</button>
+      </div>
+
+      <label class="field">
+        <span>Trailer type</span>
+        <select id="trailer-type">
+          <option value="stock_trailer">Stock trailer</option>
+          <option value="horse_trailer">Horse trailer</option>
+          <option value="livestock_trailer">Livestock trailer</option>
+          <option value="flatbed">Flatbed</option>
+        </select>
+      </label>
+
+      <label class="checkbox-row">
+        <input id="smoke-close" type="checkbox">
+        <span>Smoke within 5 miles</span>
+      </label>
+
+      <label class="field">
+        <span>Hours until fire reaches farm</span>
+        <input id="time-available" type="number" min="0.5" step="0.1" value="3.7">
+      </label>
+
+      <div id="capacity-readout" class="capacity-grid"></div>
+
+      <div class="actions">
+        <button data-prev="animals" type="button">Back</button>
+        <button class="primary" data-next="plan" type="button">Build plan</button>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-plan">
+      <div id="critical-banner" class="critical hidden"></div>
+      <div class="section-head">
+        <h2>Loading order</h2>
+        <button id="print-plan" type="button">Print</button>
+      </div>
+      <div id="plan-list" class="plan-list"></div>
+
+      <h2>Checklist</h2>
+      <div id="checklist" class="checklist"></div>
+
+      <div class="actions">
+        <button data-prev="transport" type="button">Back</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="input_form.js"></script>
+</body>
+</html>
