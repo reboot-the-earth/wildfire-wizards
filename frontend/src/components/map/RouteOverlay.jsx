@@ -1,4 +1,4 @@
-import { GeoJSON, Marker } from 'react-leaflet';
+import { Polyline, Marker } from 'react-leaflet';
 import L from 'leaflet';
 import { useMemo } from 'react';
 
@@ -49,44 +49,36 @@ export default function RouteOverlay({ routes }) {
             ? '#ca8a04'
             : '#dc2626';
 
-        const coords = route.route_geometry.coordinates;
-        const midIdx = Math.floor(coords.length / 2);
-        const midPoint = coords[midIdx];
-        const routeKey = `route-${route.facility_id}`;
+        const positions = route.route_geometry.coordinates.map(
+          ([lon, lat]) => [lat, lon]
+        );
+        const midIdx = Math.floor(positions.length / 2);
+        const midPoint = positions[midIdx];
 
         return (
-          <div key={routeKey}>
+          <div key={`route-${route.facility_id}`}>
             {isRecommended && (
-              <GeoJSON
-                key={`${routeKey}-glow`}
-                data={route.route_geometry}
-                style={() => ({
-                  color,
-                  weight: 14,
-                  opacity: 0.15,
-                  lineCap: 'round',
-                  lineJoin: 'round',
-                })}
+              <Polyline
+                positions={positions}
+                pathOptions={{ color, weight: 14, opacity: 0.15, lineCap: 'round', lineJoin: 'round' }}
               />
             )}
 
-            <GeoJSON
-              key={`${routeKey}-line`}
-              data={route.route_geometry}
-              style={() => ({
+            <Polyline
+              positions={positions}
+              pathOptions={{
                 color,
                 weight: isRecommended ? 4 : 2.5,
                 opacity: isRecommended ? 0.9 : 0.5,
-                dashArray: isRecommended ? null : '10 6',
+                dashArray: isRecommended ? undefined : '10 6',
                 lineCap: 'round',
                 lineJoin: 'round',
-              })}
+              }}
             />
 
             {midPoint && (
               <Marker
-                key={`${routeKey}-label`}
-                position={[midPoint[1], midPoint[0]]}
+                position={midPoint}
                 icon={createRouteLabel(
                   isRecommended
                     ? `BEST ROUTE \u2022 ${route.total_time_min} min`

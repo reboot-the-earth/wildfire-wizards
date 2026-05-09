@@ -1,11 +1,11 @@
 """
-Safe Route Engine — main module for NoHerdLeft routing.
+Safe Route Engine — main module for WildfireWizards routing.
 
 Exposes one function: find_safe_routes()
   Input:  farm coordinates, facility list, fire polygons
   Output: ranked routes as GeoJSON with safety scores
 
-This module does NOT import any other NoHerdLeft module directly.
+This module does NOT import any other WildfireWizards module directly.
 It reads JSON from data/ and returns JSON.
 """
 

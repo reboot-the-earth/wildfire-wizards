@@ -90,7 +90,7 @@ def generate_text_plan(
         contact = first.get("contact", contact)
 
     lines = [
-        "NOHERDLEFT EVACUATION PLAN",
+        "WILDFIREWIZARDS EVACUATION PLAN",
         f"{farm['name']} — {datetime.now().strftime('%b %d, %Y %I:%M %p')}",
         "",
         f"TIME REMAINING: ~{eta:.1f} hours",

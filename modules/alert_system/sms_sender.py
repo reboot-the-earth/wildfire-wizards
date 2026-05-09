@@ -103,7 +103,7 @@ def send_alert(
     neighbor_block: str | None = None,
 ) -> None:
     body = (
-        "NOHERDLEFT ALERT ⚠️\n"
+        "WILDFIREWIZARDS ALERT ⚠️\n"
         f"Fire detected near {farm['name']}.\n"
         f"Estimated time to your farm: ~{hours_remaining:.1f} hours.\n"
         f"Wind: {wind.get('speed_mph', '?')} mph dir {wind.get('direction_deg', '?')}°.\n\n"

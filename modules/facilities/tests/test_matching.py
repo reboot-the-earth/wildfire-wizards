@@ -340,7 +340,7 @@ def test_trip_calculator():
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    print("\nNoHerdLeft — Facility Matcher Tests")
+    print("\nWildfireWizards — Facility Matcher Tests")
     print("Demo scenario: 2017 Lilac Fire, Bonsall area\n")
 
     test_capacity_depletion()

@@ -1,6 +1,6 @@
 /**
  * Nearby farming operations.
- * registered = signed up on NoHerdLeft (gets SMS alerts)
+ * registered = signed up on WildfireWizards (gets SMS alerts)
  * willingToHelp = actively offering capacity right now
  * needsHelp = requesting help from the community
  */

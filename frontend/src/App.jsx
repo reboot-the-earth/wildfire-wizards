@@ -236,12 +236,12 @@ export default function App() {
             zoom={mapZoom}
             fireData={effectiveShowFire ? mockFireData : null}
             facilities={mockFacilities}
-            routes={liveRoutes ?? (showRoutes ? mockRoutes : null)}
+            routes={liveRoutes ?? mockRoutes}
             farms={effectiveShowFarms ? mockFireData.farms_at_risk : null}
             fellowFarmers={fellowFarmers}
             showFire={effectiveShowFire}
             showFacilities={true}
-            showRoutes={showRoutes || !!liveRoutes}
+            showRoutes={true}
             showFarms={effectiveShowFarms}
             showNeighborFarms={true}
             activeFarm={activeFarm}

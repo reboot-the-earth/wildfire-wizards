@@ -1,3 +1,7 @@
+/**
+ * Farm: Valley Center Ranch (33.20, -117.26)
+ * Single best route to the closest safe shelter.
+ */
 export const mockRoutes = {
   farm: { id: "valley_center_ranch", lat: 33.20, lon: -117.26 },
   routes_to_facilities: [
@@ -14,15 +18,37 @@ export const mockRoutes = {
       route_geometry: {
         type: "LineString",
         coordinates: [
-          [-117.26, 33.20],
-          [-117.26, 33.17],
-          [-117.265, 33.14],
-          [-117.268, 33.11],
-          [-117.27, 33.08],
-          [-117.27, 33.05],
-          [-117.268, 33.02],
-          [-117.267, 33.00],
-          [-117.268, 32.98],
+          [-117.260, 33.200],
+          [-117.258, 33.194],
+          [-117.255, 33.188],
+          [-117.254, 33.182],
+          [-117.256, 33.176],
+          [-117.258, 33.170],
+          [-117.261, 33.163],
+          [-117.263, 33.156],
+          [-117.264, 33.148],
+          [-117.265, 33.140],
+          [-117.266, 33.132],
+          [-117.267, 33.124],
+          [-117.268, 33.116],
+          [-117.269, 33.108],
+          [-117.270, 33.100],
+          [-117.271, 33.092],
+          [-117.271, 33.084],
+          [-117.272, 33.076],
+          [-117.272, 33.068],
+          [-117.273, 33.060],
+          [-117.273, 33.052],
+          [-117.274, 33.044],
+          [-117.274, 33.036],
+          [-117.275, 33.028],
+          [-117.275, 33.020],
+          [-117.274, 33.012],
+          [-117.273, 33.004],
+          [-117.271, 32.996],
+          [-117.269, 32.988],
+          [-117.268, 32.982],
+          [-117.268, 32.978],
           [-117.268, 32.974],
         ]
       },
@@ -33,75 +59,6 @@ export const mockRoutes = {
         { road: "Jimmy Durante Blvd", status: "safe", time_min: 3 }
       ],
       warnings: []
-    },
-    {
-      rank: 2,
-      facility_id: "san_pasqual_academy",
-      facility_name: "San Pasqual Valley Farm",
-      total_time_min: 35,
-      total_distance_km: 28,
-      safety_score: 82,
-      min_fire_distance_km: 5.2,
-      trailer_friendly: true,
-      status: "safe",
-      route_geometry: {
-        type: "LineString",
-        coordinates: [
-          [-117.26, 33.20],
-          [-117.24, 33.18],
-          [-117.22, 33.16],
-          [-117.19, 33.14],
-          [-117.16, 33.12],
-          [-117.12, 33.11],
-          [-117.08, 33.10],
-          [-117.054, 33.098],
-        ]
-      },
-      segments: [
-        { road: "Old Highway 395 South", status: "safe", time_min: 12 },
-        { road: "Bear Valley Pkwy", status: "at_risk_in_4hr", time_min: 23 }
-      ],
-      warnings: ["Passes within 5.2km of projected 4hr fire line"]
-    },
-    {
-      rank: 3,
-      facility_id: "ramona_rodeo",
-      facility_name: "Ramona Rodeo Grounds",
-      total_time_min: 48,
-      total_distance_km: 42,
-      safety_score: 74,
-      min_fire_distance_km: 4.1,
-      trailer_friendly: true,
-      status: "safe",
-      route_geometry: {
-        type: "LineString",
-        coordinates: [
-          [-117.26, 33.20],
-          [-117.24, 33.18],
-          [-117.21, 33.16],
-          [-117.18, 33.14],
-          [-117.14, 33.12],
-          [-117.10, 33.10],
-          [-117.05, 33.08],
-          [-117.00, 33.06],
-          [-116.95, 33.05],
-          [-116.90, 33.045],
-          [-116.868, 33.042],
-        ]
-      },
-      segments: [
-        { road: "Old Highway 395 South", status: "safe", time_min: 12 },
-        { road: "CA-78 East", status: "at_risk_in_4hr", time_min: 22 },
-        { road: "Ramona St", status: "safe", time_min: 14 }
-      ],
-      warnings: ["Route passes near 4hr fire projection — leave early"]
-    },
-    {
-      rank: null,
-      facility_id: "bonsall_community",
-      facility_name: "Bonsall Community Grounds",
-      status: "no_safe_route",
-      reason: "Access roads intersect projected 2hr fire perimeter — too close to fire"
     }
   ],
   timestamp: new Date().toISOString(),

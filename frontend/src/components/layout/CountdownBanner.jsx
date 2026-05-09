@@ -63,7 +63,7 @@ export default function CountdownBanner({
           </div>
           <div className="hidden sm:block min-w-0">
             <div className="flex items-center gap-2">
-              <div className="text-[13px] font-black tracking-tight text-white leading-none">NoHerdLeft</div>
+              <div className="text-[13px] font-black tracking-tight text-white leading-none">WildfireWizards</div>
               <span className="text-[9px] font-semibold uppercase tracking-widest text-coal-300 leading-none">Live</span>
               <span className="hidden lg:inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest text-emerald-300 bg-emerald-500/10 border border-emerald-400/25 rounded px-1.5 py-0.5 leading-none">
                 <span className="w-1 h-1 rounded-full bg-emerald-400" />

@@ -65,7 +65,7 @@ def run_once(send_plans: bool = False) -> dict:
 
     for farm in at_risk:
         hours = float(farm.get("hours_remaining") or 6.0)
-        plan_url = f"https://noherdleft.io/plan/{farm['farm_id']}"
+        plan_url = f"https://wildfirewizards.io/plan/{farm['farm_id']}"
         neighbor_block = build_neighbor_awareness_text(
             farm,
             farms,
@@ -97,7 +97,7 @@ def run_once(send_plans: bool = False) -> dict:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="NoHerdLeft alert system runner")
+    parser = argparse.ArgumentParser(description="WildfireWizards alert system runner")
     parser.add_argument("--once", action="store_true", help="Run a single alert cycle and exit")
     parser.add_argument("--send-text-plan", action="store_true", help="Also send text-only plan segments")
     args = parser.parse_args()
@@ -110,7 +110,7 @@ def main() -> int:
         print(json.dumps(summary, indent=2))
         return 0
 
-    print("NoHerdLeft alert runner started (10-minute loop). Ctrl+C to stop.")
+    print("WildfireWizards alert runner started (10-minute loop). Ctrl+C to stop.")
     while running:
         summary = run_once(send_plans=args.send_text_plan)
         print(json.dumps(summary))

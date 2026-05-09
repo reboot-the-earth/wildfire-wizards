@@ -204,7 +204,7 @@ export const DEMO_STEPS = [
   {
     id: 6,
     name: "The Stakes",
-    narration: "During the actual Lilac Fire, 46 horses died at San Luis Rey Training Center. Evacuation was uncoordinated. NoHerdLeft makes that number zero.",
+    narration: "During the actual Lilac Fire, 46 horses died at San Luis Rey Training Center. Evacuation was uncoordinated. WildfireWizards makes that number zero.",
     mapCenter: [33.24, -117.18],
     mapZoom: 10,
     showFire: true,

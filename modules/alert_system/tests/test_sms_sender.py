@@ -64,13 +64,13 @@ def test_send_alert_writes_outbox_file_and_logs(isolated_outbox, monkeypatch):
         hours_remaining=3.5,
         wind={"speed_mph": 35, "direction_deg": 55},
         fire_origin={"lat": 33.24, "lon": -117.18},
-        plan_url="https://noherdleft.io/plan/valley_center_ranch",
+        plan_url="https://wildfirewizards.io/plan/valley_center_ranch",
     )
 
     written = list(outbox.glob("sms_*.txt"))
     assert len(written) == 1
     body = written[0].read_text()
-    assert "NOHERDLEFT ALERT" in body
+    assert "WILDFIREWIZARDS ALERT" in body
     assert "Valley Center Ranch" in body
     assert "3.5 hours" in body
     assert "Reply STOP to unsubscribe" in body
@@ -96,7 +96,7 @@ def test_send_alert_includes_neighbor_block_when_provided(isolated_outbox, monke
         hours_remaining=3.5,
         wind={"speed_mph": 35, "direction_deg": 55},
         fire_origin={"lat": 33.24, "lon": -117.18},
-        plan_url="https://noherdleft.io/plan/valley_center_ranch",
+        plan_url="https://wildfirewizards.io/plan/valley_center_ranch",
         neighbor_block=extra,
     )
 

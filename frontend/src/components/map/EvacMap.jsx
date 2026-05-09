@@ -3,7 +3,6 @@ import { MapContainer, TileLayer, ZoomControl, useMap } from 'react-leaflet';
 import FireLayers from './FireLayers';
 import FacilityMarkers from './FacilityMarkers';
 import RouteOverlay from './RouteOverlay';
-import WindOverlay from './WindOverlay';
 import FarmMarkers from './FarmMarkers';
 import UserPin from './UserPin';
 import NeighborAwarenessMarkers from './NeighborAwarenessMarkers';
@@ -87,10 +86,6 @@ export default function EvacMap({
 
       {showNeighborFarms && fellowFarmers?.length > 0 && (
         <NeighborAwarenessMarkers fellowFarmers={fellowFarmers} />
-      )}
-
-      {showFire && fireData?.wind && (
-        <WindOverlay wind={fireData.wind} fireOrigin={[33.24, -117.18]} />
       )}
 
       <UserPin
