@@ -15,3 +15,8 @@ frontend/.vite/
 .DS_Store
 .idea/
 .vscode/
+
+# Alert system runtime artifacts
+modules/alert_system/farms.db
+modules/alert_system/alerts.log
+modules/alert_system/outbox/

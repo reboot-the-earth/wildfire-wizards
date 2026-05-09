@@ -1,0 +1,1 @@
+"""NoHerdLeft alert system package."""
