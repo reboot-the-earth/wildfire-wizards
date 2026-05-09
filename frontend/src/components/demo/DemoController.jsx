@@ -42,21 +42,20 @@ export default function DemoController({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.4 }}
-            className="
-              fixed bottom-24 left-1/2 -translate-x-1/2 z-50
-              max-w-xl w-[92%]
-            "
+            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 max-w-xl w-[92%]"
           >
-            <div className="
-              bg-white/95 backdrop-blur-xl
-              border border-slate-200
-              rounded-2xl shadow-xl
-              px-5 py-4
-            ">
-              <div className="text-[10px] text-blue-600 font-bold uppercase tracking-widest mb-2">
-                {step.name}
+            <div className="glass-coal-strong rounded-2xl shadow-coal-lift px-5 py-4 relative overflow-hidden">
+              <div className="absolute inset-x-0 top-0 h-px scanline" />
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-[9px] font-bold uppercase tracking-widest text-ember-300">
+                  Step {currentStep + 1} / {totalSteps}
+                </span>
+                <span className="w-1 h-1 rounded-full bg-coal-500" />
+                <span className="text-[10px] uppercase tracking-widest text-coal-300 font-semibold">
+                  {step.name}
+                </span>
               </div>
-              <p className="text-sm sm:text-[15px] text-slate-700 leading-relaxed">
+              <p className="text-sm sm:text-[15px] text-coal-100 leading-relaxed">
                 {step.narration}
               </p>
             </div>
@@ -68,16 +67,12 @@ export default function DemoController({
       <motion.div
         initial={{ y: 60, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="
-          fixed bottom-0 left-0 right-0 z-50
-          bg-white/95 backdrop-blur-xl
-          border-t border-slate-200
-        "
+        className="fixed bottom-0 left-0 right-0 z-50 glass-coal-strong border-t border-white/5"
       >
         <div className="max-w-2xl mx-auto flex items-center justify-between gap-4 px-4 py-2.5">
           <button
             onClick={onExit}
-            className="text-[11px] text-slate-400 hover:text-slate-600 transition-colors flex-shrink-0 px-2 py-1"
+            className="text-[11px] text-coal-300 hover:text-white transition-colors flex-shrink-0 px-2 py-1 uppercase tracking-widest font-semibold"
           >
             ESC to exit
           </button>
@@ -87,9 +82,9 @@ export default function DemoController({
               onClick={onPrev}
               disabled={isFirst}
               className="
-                w-8 h-8 rounded-lg flex items-center justify-center
-                bg-slate-100 border border-slate-200
-                text-slate-500 hover:text-slate-700
+                w-9 h-9 rounded-lg flex items-center justify-center
+                bg-white/5 border border-white/10
+                text-coal-200 hover:text-white hover:bg-white/10
                 disabled:opacity-20 disabled:cursor-not-allowed
                 transition-colors
               "
@@ -107,10 +102,10 @@ export default function DemoController({
                   className={`
                     h-1.5 rounded-full transition-all duration-300
                     ${i === currentStep
-                      ? 'w-8 bg-blue-500'
+                      ? 'w-10 bg-gradient-to-r from-ember-500 to-red-500 shadow-[0_0_10px_rgba(249,115,22,0.45)]'
                       : i < currentStep
-                        ? 'w-1.5 bg-blue-300'
-                        : 'w-1.5 bg-slate-200'}
+                        ? 'w-1.5 bg-ember-300'
+                        : 'w-1.5 bg-white/10'}
                   `}
                 />
               ))}
@@ -120,10 +115,11 @@ export default function DemoController({
               onClick={onNext}
               disabled={isLast}
               className="
-                w-8 h-8 rounded-lg flex items-center justify-center
-                bg-blue-600 text-white hover:bg-blue-700
+                w-9 h-9 rounded-lg flex items-center justify-center
+                bg-gradient-to-br from-ember-500 to-red-600 text-white
+                hover:shadow-ember-glow
                 disabled:opacity-20 disabled:cursor-not-allowed
-                transition-colors
+                transition-all
               "
               aria-label="Next step"
             >
@@ -134,7 +130,7 @@ export default function DemoController({
           </div>
 
           <div className="text-right flex-shrink-0 w-20">
-            <span className="text-xs font-mono text-slate-400">
+            <span className="text-xs font-mono text-coal-300 tabular-nums">
               {currentStep + 1}/{totalSteps}
             </span>
           </div>
