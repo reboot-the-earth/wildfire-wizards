@@ -1,0 +1,2 @@
+shapely>=2.0,<3
+requests>=2.28,<3
