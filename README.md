@@ -25,6 +25,7 @@ noherdeleft/
     routing/           <- Person 2: safe route engine
     facilities/        <- Person 3: facility matching & capacity
     farmer_input/      <- Person 4: input form, priority engine, checklists
+    alert_system/      <- Proactive SMS alert + offline text plan (Twilio/Textbelt/demo)
   frontend/            <- Person 5: map UI, integration, demo controller
   demo/                <- pre-loaded farm profiles and fire scenarios
   config.json          <- shared constants
@@ -101,14 +102,35 @@ python modules/fire_detection/download_data.py
 python modules/routing/download_roads.py
 ```
 
-Run the test suite:
+Run the test suite (57 tests across all modules):
 
 ```bash
-python -m pytest modules/farmer_input/tests \
-                 modules/facilities/tests \
-                 modules/routing/tests \
-                 modules/fire_detection/tests -q
+python -m pytest modules/ -q
 ```
+
+### Alert system (proactive SMS)
+
+Background job that watches the fire spread, finds at-risk registered farms,
+and texts each farmer their evacuation plan. Works offline once the SMS
+arrives — no app, no login.
+
+```bash
+# 1. Bootstrap the SQLite farm registry (3 demo farms)
+python modules/alert_system/seed_farms.py
+
+# 2. Run a single alert cycle (also generates text-only plan segments)
+python modules/alert_system/alert_runner.py --once --send-text-plan
+
+# 3. Continuous mode (10-minute poll loop; Ctrl+C to stop)
+python modules/alert_system/alert_runner.py --send-text-plan
+```
+
+By default no Twilio/Textbelt credentials are set, so SMS bodies are written
+to `modules/alert_system/outbox/*.txt` and every send is appended to
+`modules/alert_system/alerts.log` (JSONL). To enable real delivery set
+`TWILIO_ACCOUNT_SID` + `TWILIO_AUTH_TOKEN` + `TWILIO_PHONE_NUMBER`, or
+`TEXTBELT_KEY`. See [`modules/alert_system/README.md`](modules/alert_system/README.md)
+for the full env var list.
 
 ### Endpoints
 

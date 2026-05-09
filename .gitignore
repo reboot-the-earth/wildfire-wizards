@@ -26,3 +26,8 @@ frontend/.vite/
 .idea/
 .vscode/
 .claude/
+
+# Alert system runtime artifacts (created at runtime by alert_runner)
+modules/alert_system/farms.db
+modules/alert_system/alerts.log
+modules/alert_system/outbox/
